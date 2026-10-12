@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;background:#0B0B1E;color:#fff;font-family:system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column;background:radial-gradient(circle at 80% 100%,#3a1250 0,transparent 45%),radial-gradient(circle at 0 0,#1b1450 0,transparent 50%),#0B0B1E}
+.top{padding:10px 12px 0}
+.search{display:flex;align-items:center;gap:10px;border:2px solid #6c4bd8;border-radius:30px;padding:6px 8px 6px 10px;background:#12122e;box-shadow:0 0 16px #6c4bd855}
+.search .pen{width:38px;height:38px;border-radius:50%;background:#1d1d45;display:flex;align-items:center;justify-content:center;font-size:18px}
+.search input{flex:1;background:none;border:0;outline:0;color:#fff;font-size:17px;min-width:0}
+.search input::placeholder{color:#9a9ac0}
+.clear{width:44px;height:44px;border-radius:50%;border:0;background:#ff2d7a;color:#fff;font-size:22px;box-shadow:0 0 14px #ff2d7a88}
+.cnt{font-size:13px;color:#9a9ac0;margin:4px 0 8px 12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:10px 20px;border-radius:24px;background:#14143a;border:1px solid #23235a;color:#d8d8ff;font-size:16px;font-weight:600}
+.chip.on{background:linear-gradient(90deg,#8f5bff,#5b6bff);border-color:transparent;color:#fff}
+.main{flex:1;display:flex;min-height:0;padding:0 8px;gap:8px}
+.side{width:76px;flex:0 0 76px;overflow-y:auto;border:1px solid #23235a;border-radius:22px;background:#0f0f2c;padding:6px 0;scrollbar-width:none}
+.side::-webkit-scrollbar{display:none}
+.cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;font-size:12px;color:#d8d8ff;margin:0 6px;border-radius:16px;text-align:center}
+.cat .e{font-size:24px;line-height:1}
+.cat.on{background:linear-gradient(180deg,#7b4dff,#4a3ad0);box-shadow:0 0 12px #7b4dff88;color:#fff}
+.list{flex:1;overflow-y:auto;padding-bottom:90px;scrollbar-width:none}
+.list::-webkit-scrollbar{display:none}
+.card{display:flex;align-items:center;gap:10px;background:#15153a;border:1px solid #23235a;border-radius:16px;padding:8px;margin-bottom:8px}
+.ic{width:46px;height:46px;flex:0 0 46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#241a4d;border:1px solid #3a2d78}
+.txt{flex:1;min-width:0;border-left:1px solid #23235a;padding-left:10px}
+.out{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:12.5px;color:#8aa0ff;margin-top:3px}
+.btn{width:44px;height:44px;flex:0 0 44px;border-radius:14px;border:0;background:#2a2a78;color:#fff;font-size:18px}
+.fav{width:34px;height:44px;flex:0 0 34px;background:none;border:0;font-size:20px;color:#6a6a9a}
+.fav.on{color:#ff2d7a}
+.empty{text-align:center;color:#9a9ac0;margin-top:60px;font-size:15px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#0f0f2c;border-top:1px solid #23235a;padding:6px 0 8px}
+nav div{flex:1;text-align:center;font-size:12px;color:#9a9ac0;padding-top:4px}
+nav div b{display:block;font-size:22px;font-weight:400}
+nav div.on{color:#8f7bff;box-shadow:inset 0 -3px 0 #8f5bff}
+.set{padding:16px;width:100%}
+.set button{display:block;width:100%;padding:14px;margin-bottom:10px;border-radius:14px;border:1px solid #23235a;background:#15153a;color:#fff;font-size:16px;text-align:left}
+.set p{color:#9a9ac0;font-size:13px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="search">
+    <div class="pen">✏️</div>
+    <input id="q" placeholder="Type text to ✨ Convert" autocomplete="off" autocapitalize="off">
+    <button class="clear" id="clr">✕</button>
+  </div>
+  <div class="cnt" id="cnt">0 chars</div>
+  <div class="chips" id="chips"></div>
+</div>
+<div class="main" id="main">
+  <div class="side" id="side"></div>
+  <div class="list" id="list"></div>
+</div>
+<nav id="nav">
+  <div data-t="home" class="on"><b>🏠</b>Home</div>
+  <div data-t="favs"><b>⭐</b>Favorites</div>
+  <div data-t="hist"><b>📋</b>History</div>
+  <div data-t="set"><b>⚙️</b>Settings</div>
+</nav>
+<script src="data.js"></script>
+<script>
+// ---------- font converters ----------
+const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ',a='abcdefghijklmnopqrstuvwxyz',D='0123456789';
+function off(u,l,d){return t=>[...t].map(c=>{let i=A.indexOf(c);if(i>=0)return String.fromCodePoint(u+i);i=a.indexOf(c);if(i>=0)return String.fromCodePoint(l+i);i=D.indexOf(c);if(i>=0&&d)return String.fromCodePoint(d+i);return c}).join('')}
+const dsEx={C:'ℂ',H:'ℍ',N:'ℕ',P:'ℙ',Q:'ℚ',R:'ℝ',Z:'ℤ'};
+const ds=t=>[...t].map(c=>dsEx[c]||off(0x1D538,0x1D552,0x1D7D8)(c)).join('');
+const sc='ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ';
+const smallcaps=t=>[...t].map(c=>{const i=a.indexOf(c.toLowerCase());return i>=0?[...sc][i]:c}).join('');
+const circled=t=>[...t].map(c=>{let i=A.indexOf(c);if(i>=0)return String.fromCodePoint(0x24B6+i);i=a.indexOf(c);if(i>=0)return String.fromCodePoint(0x24D0+i);return c}).join('');
+const wide=t=>[...t].map(c=>c===' '?'\u3000':(c.charCodeAt(0)>32&&c.charCodeAt(0)<127?String.fromCharCode(c.charCodeAt(0)+0xFEE0):c)).join('');
+const FONTS=[
+ {n:'Bold Script',f:off(0x1D4D0,0x1D4EA,0x1D7CE)},
+ {n:'Double Struck',f:ds},
+ {n:'Fraktur Bold',f:off(0x1D56C,0x1D586,0x1D7CE)},
+ {n:'Bold Serif',f:off(0x1D400,0x1D41A,0x1D7CE)},
+ {n:'Monospace',f:off(0x1D670,0x1D68A,0x1D7F6)},
+ {n:'Small Caps',f:smallcaps},
+ {n:'Circled',f:circled},
+ {n:'Wide',f:wide},
+];
+// ---------- links ----------
+const EMOJI_APP='https://github.com/oneshoot5010/emoji_stickers/releases/download/latest/emoji-stickers.apk';
+const RAFIQ_APP='https://github.com/oneshoot5010/rafiq_app/releases/download/latest/app-arm64-v8a-release.apk';
+const LEO_APP='https://github.com/oneshoot5010/leo-copilot/releases/download/latest/leo-copilot.apk';
+function go(u){if(window.Android)Android.open(u);else window.open(u)}
+// ---------- state ----------
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let favs=ld('favs',[]),hist=ld('hist',[]),cat='all',tab='home',chip='all';
+const $=id=>document.getElementById(id);
+const CATS=[{id:'all',icon:'🔳',name:'All'},{id:'fonts',icon:'🔤',name:'Fonts'},...STYLES.map(s=>({id:s.id,icon:s.icon,name:s.name}))];
+const CHIPS=[{id:'all',l:'⭐ All'},{id:'fonts',l:'🔤 Fonts'},{id:'deco',l:'✨ Decor'}];
+// ---------- build items ----------
+function items(){
+  const t=$('q').value||'Font Copy Paste';
+  const out=[];
+  const wantFonts=(cat==='all'||cat==='fonts')&&chip!=='deco';
+  const wantDeco=cat!=='fonts'&&chip!=='fonts';
+  if(wantFonts)FONTS.forEach(x=>out.push({icon:'🔤',cat:'Fonts',text:x.f(t)}));
+  if(wantDeco)STYLES.forEach(s=>{if(cat==='all'||cat===s.id)s.items.forEach(p=>out.push({icon:s.icon,cat:s.name,text:p.replace(/\[\[t\]\]/g,t)}))});
+  return out;
+}
+function render(){
+  $('side').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''}" data-c="${c.id}"><span class="e">${c.icon}</span>${c.name}</div>`).join('');
+  $('chips').innerHTML=CHIPS.map(c=>`<div class="chip ${c.id===chip?'on':''}" data-p="${c.id}">${c.l}</div>`).join('');
+  $('cnt').textContent=[...$('q').value].length+' chars';
+  const side=$('side');
+  $('main').style.display='flex';
+  $('side').style.display=tab==='home'?'block':'none';
+  $('chips').style.display=tab==='home'?'flex':'none';
+  let list=[];
+  if(tab==='home')list=items();
+  else if(tab==='favs')list=favs.map(t=>({icon:'⭐',cat:'Favorite',text:t}));
+  else if(tab==='hist')list=hist.map(t=>({icon:'📋',cat:'History',text:t}));
+  const L=$('list');
+  if(tab==='set'){
+    L.innerHTML=`<div class="set">
+<button onclick="go('https://github.com/oneshoot5010')">🐙 GitHub</button>
+<button onclick="go('https://wa.me/201044947639')">💬 WhatsApp</button>
+<button onclick="go(EMOJI_APP)">😀 استيكرات ايموجي</button>
+<button onclick="go(RAFIQ_APP)">🤝 رفيق</button>
+<button onclick="go(LEO_APP)">🦁 Leo Copilot Pro</button>
+<button onclick="favs=[];sv('favs',favs);render()">🗑 Clear favorites</button>
+<button onclick="hist=[];sv('hist',hist);render()">🗑 Clear history</button>
+<p>استيكرات فونت v1.0</p></div>`;return;
+  }
+  if(!list.length){L.innerHTML='<div class="empty">Nothing here yet</div>';return}
+  L.innerHTML=list.map((x,i)=>`<div class="card"><div class="ic">${x.icon}</div><div class="txt"><div class="out">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="fav ${favs.includes(x.text)?'on':''}" data-f="${i}">♥</button><button class="btn" data-k="${i}">⧉</button></div>`).join('');
+  L._list=list;
+}
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function copy(t){
+  if(window.Android)Android.copy(t);else navigator.clipboard&&navigator.clipboard.writeText(t);
+  hist=[t,...hist.filter(h=>h!==t)].slice(0,100);sv('hist',hist);
+}
+// ---------- events ----------
+$('q').addEventListener('input',()=>{render()});
+$('clr').onclick=()=>{$('q').value='';render()};
+$('side').onclick=e=>{const c=e.target.closest('[data-c]');if(c){cat=c.dataset.c;render();$('list').scrollTop=0}};
+$('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset.p;if(chip==='fonts')cat='fonts';else if(cat==='fonts')cat='all';render();$('list').scrollTop=0}};
+$('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dataset.t;[...$('nav').children].forEach(n=>n.classList.toggle('on',n===d));render();$('list').scrollTop=0};
+$('list').onclick=e=>{
+  const L=$('list'),k=e.target.closest('[data-k]'),f=e.target.closest('[data-f]');
+  if(k){copy(L._list[+k.dataset.k].text)}
+  if(f){const t=L._list[+f.dataset.f].text;favs=favs.includes(t)?favs.filter(x=>x!==t):[t,...favs];sv('favs',favs);const y=L.scrollTop;render();L.scrollTop=y}
+};
+render();
+</script>
+</body>
+</html>
