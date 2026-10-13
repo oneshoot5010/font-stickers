@@ -1,12 +1,17 @@
 package com.fontcopy.app;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -22,6 +27,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
+import android.widget.Toast;
 import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,11 +46,21 @@ public class FontKeyboardService extends InputMethodService {
             "👍", "👎", "👏", "🙏", "💪", "✌️", "🤝", "👌",
             "❤️", "💔", "🔥", "✨", "⭐", "🎉", "🎮", "💯"};
     static final String NONJOIN = "اأإآدذرزوؤءةى";
-    static final int BG = 0xFF0E0F2E;
-    static final int KEY = 0xFF1C1F52;
-    static final int SPECIAL = 0xFF2A2E7A;
-    static final int ACCENT = 0xFF6A62F2;
-    static final int CHIP = 0xFF14173F;
+    static int BG = 0xFF0E0F2E;
+    static int KEY = 0xFF1C1F52;
+    static int SPECIAL = 0xFF2A2E7A;
+    static int ACCENT = 0xFF6A62F2;
+    static int CHIP = 0xFF14173F;
+    static int TXT = 0xFFFFFFFF;
+    static int TXT2 = 0xFFB4B7E6;
+    // BG, KEY, SPECIAL, ACCENT, CHIP, TXT, TXT2
+    static final int[][] THEMES = {
+            {0xFF0E0F2E, 0xFF1C1F52, 0xFF2A2E7A, 0xFF6A62F2, 0xFF14173F, 0xFFFFFFFF, 0xFFB4B7E6},
+            {0xFF0B1A12, 0xFF16301F, 0xFF1F4A30, 0xFF2ECC71, 0xFF10261A, 0xFFFFFFFF, 0xFFA8D8B9},
+            {0xFF101010, 0xFF242424, 0xFF383838, 0xFFE53935, 0xFF1A1A1A, 0xFFFFFFFF, 0xFFBBBBBB},
+            {0xFF0A1A2E, 0xFF14304F, 0xFF1E4A78, 0xFF29B6F6, 0xFF0F2540, 0xFFFFFFFF, 0xFFA9CBE8},
+            {0xFFEDEDF5, 0xFFFFFFFF, 0xFFC9CBE0, 0xFF6A62F2, 0xFFDADCEC, 0xFF1B1B3A, 0xFF454775}
+    };
     static final HashMap<String, String[]> ALTS = new HashMap<>();
 
     static {
@@ -67,6 +84,16 @@ public class FontKeyboardService extends InputMethodService {
     int shift = 0;  // 0 off, 1 once, 2 caps
     int markIdx = 0;
     int lastLen = 0;
+    int oneHand = 0;
+    boolean prog = false;
+    boolean secret = false;
+    final ArrayList<String> curKeys = new ArrayList<>();
+    final ArrayList<String> curOuts = new ArrayList<>();
+    final TextView[] sugg = new TextView[3];
+    final String[] suggVals = new String[3];
+    LinearLayout strip, tools;
+    ClipboardManager cm;
+    final ClipboardManager.OnPrimaryClipChangedListener clipL = this::onClip;
     float density = 2f;
     final ArrayList<TextView> letterViews = new ArrayList<>();
     final ArrayList<String> letterBase = new ArrayList<>();
@@ -96,16 +123,49 @@ public class FontKeyboardService extends InputMethodService {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        Predict.load(this);
+        cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm != null) {
+            try {
+                cm.addPrimaryClipChangedListener(clipL);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        try {
+            if (cm != null) cm.removePrimaryClipChangedListener(clipL);
+        } catch (Exception ignored) {
+        }
+        Predict.save(this);
+        super.onDestroy();
+    }
+
+    @Override
     public View onCreateInputView() {
         density = getResources().getDisplayMetrics().density;
         enStyle = getSharedPreferences("kb", MODE_PRIVATE).getInt("en", 0);
         arStyle = getSharedPreferences("kb", MODE_PRIVATE).getInt("ar", 0);
         if (enStyle < 0 || enStyle >= EN_STYLES.length - 2) enStyle = 0;
         if (arStyle < 0 || arStyle >= AR_STYLES.length - 2) arStyle = 0;
+        applyTheme();
+        oneHand = getSharedPreferences("kb", MODE_PRIVATE).getInt("hand", 0);
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(BG);
         root.setPadding(dp(3), dp(3), dp(3), dp(6));
+
+        strip = new LinearLayout(this);
+        strip.setOrientation(LinearLayout.HORIZONTAL);
+        root.addView(strip, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
+        tools = new LinearLayout(this);
+        tools.setOrientation(LinearLayout.HORIZONTAL);
+        tools.setVisibility(View.GONE);
+        root.addView(tools, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
 
         HorizontalScrollView hs = new HorizontalScrollView(this);
         hs.setHorizontalScrollBarEnabled(false);
@@ -118,6 +178,9 @@ public class FontKeyboardService extends InputMethodService {
         keysBox.setOrientation(LinearLayout.VERTICAL);
         root.addView(keysBox, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        buildStrip();
+        buildTools();
+        applyHand();
         buildStyleRow();
         buildKeys();
         return root;
@@ -127,13 +190,23 @@ public class FontKeyboardService extends InputMethodService {
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
         shift = 0;
+        clearCur();
+        int cls = info.inputType & InputType.TYPE_MASK_CLASS;
+        int var = info.inputType & InputType.TYPE_MASK_VARIATION;
+        secret = (cls == InputType.TYPE_CLASS_TEXT && (var == InputType.TYPE_TEXT_VARIATION_PASSWORD
+                || var == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD || var == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD))
+                || (cls == InputType.TYPE_CLASS_NUMBER && var == InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        if (!secret) onClip();
         if (keysBox != null) buildKeys();
+        flushVoice();
+        handler.postDelayed(this::flushVoice, 300);
     }
 
     @Override
     public void onFinishInputView(boolean finishingInput) {
         super.onFinishInputView(finishingInput);
         dismissPop();
+        Predict.save(this);
     }
 
     void buildStyleRow() {
@@ -148,7 +221,7 @@ public class FontKeyboardService extends InputMethodService {
             t.setSingleLine(true);
             t.setGravity(Gravity.CENTER);
             t.setPadding(dp(14), 0, dp(14), 0);
-            t.setTextColor(i == sel ? Color.WHITE : 0xFFB4B7E6);
+            t.setTextColor(i == sel ? Color.WHITE : TXT2);
             GradientDrawable g = new GradientDrawable();
             g.setCornerRadius(dp(16));
             g.setColor(i == sel ? ACCENT : CHIP);
@@ -191,7 +264,7 @@ public class FontKeyboardService extends InputMethodService {
         TextView t = new TextView(this);
         t.setText(label);
         t.setGravity(Gravity.CENTER);
-        t.setTextColor(Color.WHITE);
+        t.setTextColor(TXT);
         t.setTextSize(18);
         t.setSingleLine(true);
         t.setIncludeFontPadding(false);
@@ -265,7 +338,13 @@ public class FontKeyboardService extends InputMethodService {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
         if (lastLen > 0) ic.deleteSurroundingText(lastLen, 0);
+        if (!curKeys.isEmpty()) {
+            curKeys.remove(curKeys.size() - 1);
+            curOuts.remove(curOuts.size() - 1);
+        }
+        prog = true;
         onKey(alt);
+        prog = false;
     }
 
     void dismissPop() {
@@ -290,7 +369,7 @@ public class FontKeyboardService extends InputMethodService {
         for (final String a : alts) {
             TextView t = new TextView(this);
             t.setText(a);
-            t.setTextColor(Color.WHITE);
+            t.setTextColor(TXT);
             t.setTextSize(22);
             t.setGravity(Gravity.CENTER);
             t.setPadding(dp(14), dp(6), dp(14), dp(6));
@@ -377,7 +456,7 @@ public class FontKeyboardService extends InputMethodService {
                     switchLang();
                 } else {
                     v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-                    typeRaw(lang == 0 && mode == 0 && enStyle == 8 ? "\u3000" : " ");
+                    onSpace();
                 }
             } else if (a == MotionEvent.ACTION_CANCEL) {
                 v.setAlpha(1f);
@@ -390,6 +469,7 @@ public class FontKeyboardService extends InputMethodService {
     void switchLang() {
         lang = 1 - lang;
         mode = 0;
+        clearCur();
         markIdx = 0;
         buildStyleRow();
         buildKeys();
@@ -500,6 +580,51 @@ public class FontKeyboardService extends InputMethodService {
                 addLetters(r, s);
                 keysBox.addView(r);
             }
+        } else if (mode == 6) {
+            ArrayList<String> items = clipList();
+            ArrayList<String> ord = new ArrayList<>();
+            for (String x : items) if (x.startsWith("\u0002")) ord.add(x);
+            for (String x : items) if (!x.startsWith("\u0002")) ord.add(x);
+            LinearLayout top = newRow(34);
+            TextView clr = key("\uD83D\uDDD1 مسح غير المثبت", 1f, SPECIAL, () -> {
+                ArrayList<String> keep = new ArrayList<>();
+                for (String x : clipList()) if (x.startsWith("\u0002")) keep.add(x);
+                saveClip(keep);
+                buildKeys();
+            });
+            clr.setTextSize(13);
+            top.addView(clr);
+            keysBox.addView(top);
+            ScrollView sv = new ScrollView(this);
+            LinearLayout col = new LinearLayout(this);
+            col.setOrientation(LinearLayout.VERTICAL);
+            if (ord.isEmpty()) {
+                LinearLayout hr = newRow();
+                TextView hint = key("الحافظة فاضية، انسخ أي نص وهيظهر هنا", 1f, KEY, null);
+                hint.setTextSize(13);
+                hr.addView(hint);
+                col.addView(hr);
+            }
+            for (final String raw : ord) {
+                final boolean pinned = raw.startsWith("\u0002");
+                final String txt = pinned ? raw.substring(1) : raw;
+                LinearLayout cr = newRow(42);
+                TextView it = key(txt.replace("\n", " "), 6f, KEY, () -> typeRaw(txt));
+                it.setTextSize(13);
+                it.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                it.setPadding(dp(10), 0, dp(10), 0);
+                it.setEllipsize(TextUtils.TruncateAt.END);
+                TextView pn = key("\uD83D\uDCCC", 1f, pinned ? ACCENT : SPECIAL, () -> togglePin(raw));
+                pn.setTextSize(14);
+                TextView dl = key("\u2715", 1f, SPECIAL, () -> delClip(raw));
+                dl.setTextSize(14);
+                cr.addView(it);
+                cr.addView(pn);
+                cr.addView(dl);
+                col.addView(cr);
+            }
+            sv.addView(col);
+            keysBox.addView(sv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(150)));
         } else {
             LinearLayout r1 = newRow();
             addLetters(r1, lang == 1 ? "١٢٣٤٥٦٧٨٩٠" : "1234567890");
@@ -522,10 +647,10 @@ public class FontKeyboardService extends InputMethodService {
         }
 
         LinearLayout b = newRow();
-        boolean back = (mode == 1 || mode == 4 || mode == 5);
+        boolean back = (mode == 1 || mode == 4 || mode == 5 || mode == 6);
         String numLabel = back ? (lang == 1 ? "ع" : "ABC") : (lang == 1 ? "١٢٣" : "123");
         TextView numKey = key(numLabel, 1.3f, SPECIAL, () -> {
-            mode = (mode == 1 || mode == 4 || mode == 5) ? 0 : 1;
+            mode = (mode == 1 || mode == 4 || mode == 5 || mode == 6) ? 0 : 1;
             buildStyleRow();
             buildKeys();
         });
@@ -551,6 +676,7 @@ public class FontKeyboardService extends InputMethodService {
         b.addView(fastKey(".", 0.8f, KEY, () -> onKey(".")));
         b.addView(key("⏎", 1.3f, ACCENT, this::doEnter));
         keysBox.addView(b);
+        refreshSugg();
     }
 
     static boolean joinsNext(char p) {
@@ -562,8 +688,10 @@ public class FontKeyboardService extends InputMethodService {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
         String out = k;
+        String typed = k;
         if (mode == 0 && lang == 0) {
             String c = shift > 0 ? k.toUpperCase() : k;
+            typed = c;
             out = Fonts.conv(enStyle, c);
             if (shift == 1) {
                 shift = 0;
@@ -583,6 +711,13 @@ public class FontKeyboardService extends InputMethodService {
         }
         lastLen = out.length();
         ic.commitText(out, 1);
+        if (mode == 0 && k.length() > 0 && Character.isLetter(k.codePointAt(0))) {
+            curKeys.add(typed);
+            curOuts.add(out);
+        } else {
+            endWord();
+        }
+        refreshSugg();
     }
 
     static char lastLetter(InputConnection ic) {
@@ -596,6 +731,7 @@ public class FontKeyboardService extends InputMethodService {
     void wrapAll(String frame) {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
+        clearCur();
         ExtractedText et = ic.getExtractedText(new ExtractedTextRequest(), 0);
         String txt = (et != null && et.text != null) ? et.text.toString().trim() : "";
         if (txt.isEmpty()) return;
@@ -605,11 +741,13 @@ public class FontKeyboardService extends InputMethodService {
 
     void typeRaw(String s) {
         markIdx = 0;
+        endWord();
         InputConnection ic = getCurrentInputConnection();
         if (ic != null) {
             lastLen = s.length();
             ic.commitText(s, 1);
         }
+        refreshSugg();
     }
 
     void doBack() {
@@ -618,6 +756,8 @@ public class FontKeyboardService extends InputMethodService {
         CharSequence sel = ic.getSelectedText(0);
         if (sel != null && sel.length() > 0) {
             ic.commitText("", 1);
+            clearCur();
+            refreshSugg();
             return;
         }
         CharSequence b = ic.getTextBeforeCursor(2, 0);
@@ -627,11 +767,23 @@ public class FontKeyboardService extends InputMethodService {
             else if (b.charAt(1) == '\uFE0F') n = 2;
         }
         ic.deleteSurroundingText(n, 0);
+        if (!curOuts.isEmpty()) {
+            int last = curOuts.size() - 1;
+            String lo = curOuts.get(last);
+            if (lo.length() <= n) {
+                curOuts.remove(last);
+                curKeys.remove(last);
+            } else {
+                curOuts.set(last, lo.substring(0, lo.length() - n));
+            }
+        }
+        refreshSugg();
     }
 
     void doEnter() {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
+        endWord();
         EditorInfo ei = getCurrentInputEditorInfo();
         int action = ei != null ? (ei.imeOptions & EditorInfo.IME_MASK_ACTION) : EditorInfo.IME_ACTION_NONE;
         boolean noAction = ei == null || (ei.imeOptions & EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0
@@ -642,5 +794,312 @@ public class FontKeyboardService extends InputMethodService {
             ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
             ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));
         }
+        refreshSugg();
+    }
+
+    // ---------- word tracking / prediction ----------
+    String curWord() {
+        StringBuilder sb = new StringBuilder();
+        for (String s : curKeys) sb.append(s);
+        return sb.toString();
+    }
+
+    String curOutStr() {
+        StringBuilder sb = new StringBuilder();
+        for (String s : curOuts) sb.append(s);
+        return sb.toString();
+    }
+
+    void clearCur() {
+        curKeys.clear();
+        curOuts.clear();
+    }
+
+    void endWord() {
+        if (!prog && !secret && curKeys.size() >= 2) Predict.learn(this, curWord());
+        clearCur();
+    }
+
+    void typeWord(String w) {
+        prog = true;
+        for (int i = 0; i < w.length(); i++) onKey(w.substring(i, i + 1));
+        prog = false;
+    }
+
+    boolean replaceCur(String w) {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return false;
+        String expect = curOutStr();
+        CharSequence b = ic.getTextBeforeCursor(expect.length(), 0);
+        if (b == null || !b.toString().equals(expect)) {
+            clearCur();
+            return false;
+        }
+        boolean cap = lang == 0 && !curKeys.isEmpty() && curKeys.get(0).length() > 0
+                && Character.isUpperCase(curKeys.get(0).charAt(0));
+        ic.deleteSurroundingText(expect.length(), 0);
+        clearCur();
+        if (cap && shift == 0) {
+            shift = 1;
+            updateShiftUi();
+        }
+        typeWord(w);
+        return true;
+    }
+
+    void onSpace() {
+        if (mode == 0 && !secret && !curKeys.isEmpty()) {
+            String f = Predict.fix(lang, curWord());
+            if (f != null) replaceCur(f);
+        }
+        typeRaw(lang == 0 && mode == 0 && enStyle == 8 ? "\u3000" : " ");
+    }
+
+    void pickSugg(int i) {
+        if (i < 0 || i > 2 || suggVals[i] == null || mode != 0) return;
+        String w = suggVals[i];
+        if (!curKeys.isEmpty()) {
+            if (!replaceCur(w)) {
+                refreshSugg();
+                return;
+            }
+        } else {
+            typeWord(w);
+        }
+        typeRaw(" ");
+    }
+
+    void refreshSugg() {
+        if (sugg[0] == null) return;
+        String[] r = (mode == 0 && !secret) ? Predict.suggest(lang, curWord()) : new String[0];
+        for (int i = 0; i < 3; i++) {
+            suggVals[i] = i < r.length ? r[i] : null;
+            sugg[i].setText(suggVals[i] == null ? "" : suggVals[i]);
+        }
+    }
+
+    // ---------- strip / tools ----------
+    void buildStrip() {
+        strip.removeAllViews();
+        TextView mic = key("\uD83C\uDFA4", 0.9f, SPECIAL, this::startVoice);
+        mic.setTextSize(16);
+        strip.addView(mic);
+        for (int i = 0; i < 3; i++) {
+            final int idx = i;
+            TextView s = key("", 2f, CHIP, null);
+            s.setTextSize(15);
+            s.setEllipsize(TextUtils.TruncateAt.END);
+            s.setOnClickListener(v -> pickSugg(idx));
+            sugg[i] = s;
+            strip.addView(s);
+        }
+        TextView cl = key("\uD83D\uDCCB", 0.9f, SPECIAL, () -> {
+            mode = (mode == 6) ? 0 : 6;
+            buildStyleRow();
+            buildKeys();
+        });
+        cl.setTextSize(16);
+        strip.addView(cl);
+        TextView mo = key("\u22EF", 0.9f, SPECIAL, () ->
+                tools.setVisibility(tools.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
+        strip.addView(mo);
+    }
+
+    void buildTools() {
+        tools.removeAllViews();
+        String[] labels = {"\uD83D\uDCE5 لصق", "\uD83C\uDFA8 ثيم", "\u25D0 يد واحدة", "Aa\u21BB تحويل"};
+        Runnable[] acts = {this::pasteLatest, this::cycleTheme, this::cycleHand, this::convertAll};
+        for (int i = 0; i < labels.length; i++) {
+            TextView t = key(labels[i], 1f, SPECIAL, acts[i]);
+            t.setTextSize(13);
+            tools.addView(t);
+        }
+    }
+
+    void applyTheme() {
+        int t = getSharedPreferences("kb", MODE_PRIVATE).getInt("theme", 0);
+        if (t < 0 || t >= THEMES.length) t = 0;
+        int[] c = THEMES[t];
+        BG = c[0];
+        KEY = c[1];
+        SPECIAL = c[2];
+        ACCENT = c[3];
+        CHIP = c[4];
+        TXT = c[5];
+        TXT2 = c[6];
+    }
+
+    void cycleTheme() {
+        SharedPreferences sp = getSharedPreferences("kb", MODE_PRIVATE);
+        sp.edit().putInt("theme", (sp.getInt("theme", 0) + 1) % THEMES.length).apply();
+        setInputView(onCreateInputView());
+    }
+
+    void applyHand() {
+        if (root == null) return;
+        int w = getResources().getDisplayMetrics().widthPixels;
+        int pad = oneHand == 0 ? 0 : (int) (w * 0.22f);
+        root.setPadding(dp(3) + (oneHand == 2 ? pad : 0), dp(3), dp(3) + (oneHand == 1 ? pad : 0), dp(6));
+    }
+
+    void cycleHand() {
+        oneHand = (oneHand + 1) % 3;
+        getSharedPreferences("kb", MODE_PRIVATE).edit().putInt("hand", oneHand).apply();
+        applyHand();
+    }
+
+    // ---------- voice ----------
+    void startVoice() {
+        try {
+            Intent i = new Intent(this, VoiceActivity.class);
+            i.putExtra("lang", lang == 1 ? "ar-EG" : "en-US");
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "الكتابة بالصوت مش متاحة", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    void flushVoice() {
+        SharedPreferences sp = getSharedPreferences("kb", MODE_PRIVATE);
+        String v = sp.getString("voice", "");
+        long ts = sp.getLong("voice_ts", 0);
+        if (v == null || v.isEmpty()) return;
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        sp.edit().remove("voice").remove("voice_ts").apply();
+        if (System.currentTimeMillis() - ts > 60000) return;
+        clearCur();
+        String out = lang == 0 ? Fonts.conv(enStyle, v) : v;
+        ic.commitText(out + " ", 1);
+        refreshSugg();
+    }
+
+    // ---------- clipboard ----------
+    ArrayList<String> clipList() {
+        String h = getSharedPreferences("kb", MODE_PRIVATE).getString("clip", "");
+        ArrayList<String> l = new ArrayList<>();
+        if (h != null && !h.isEmpty()) {
+            for (String x : h.split("\u0001")) {
+                if (!x.isEmpty()) l.add(x);
+            }
+        }
+        return l;
+    }
+
+    void saveClip(ArrayList<String> l) {
+        getSharedPreferences("kb", MODE_PRIVATE).edit().putString("clip", TextUtils.join("\u0001", l)).apply();
+    }
+
+    void onClip() {
+        try {
+            if (cm == null) return;
+            ClipData d = cm.getPrimaryClip();
+            if (d == null || d.getItemCount() == 0) return;
+            if (d.getDescription() != null && d.getDescription().getExtras() != null
+                    && d.getDescription().getExtras().getBoolean("android.content.extra.IS_SENSITIVE", false)) return;
+            CharSequence cs = d.getItemAt(0).coerceToText(this);
+            if (cs == null) return;
+            String s = cs.toString().trim();
+            if (s.isEmpty() || s.length() > 2000) return;
+            addClip(s);
+        } catch (Exception ignored) {
+        }
+    }
+
+    void addClip(String s) {
+        s = s.replace("\u0001", "").replace("\u0002", "");
+        if (s.isEmpty()) return;
+        ArrayList<String> l = clipList();
+        for (int i = 0; i < l.size(); i++) {
+            String x = l.get(i);
+            if (x.equals(s)) {
+                l.remove(i);
+                l.add(0, s);
+                saveClip(l);
+                return;
+            }
+            if (x.equals("\u0002" + s)) return;
+        }
+        l.add(0, s);
+        int n = 0;
+        for (int i = 0; i < l.size(); i++) if (!l.get(i).startsWith("\u0002")) n++;
+        for (int i = l.size() - 1; i >= 0 && n > 30; i--) {
+            if (!l.get(i).startsWith("\u0002")) {
+                l.remove(i);
+                n--;
+            }
+        }
+        saveClip(l);
+    }
+
+    void togglePin(String raw) {
+        ArrayList<String> l = clipList();
+        int i = l.indexOf(raw);
+        if (i < 0) return;
+        l.set(i, raw.startsWith("\u0002") ? raw.substring(1) : "\u0002" + raw);
+        saveClip(l);
+        buildKeys();
+    }
+
+    void delClip(String raw) {
+        ArrayList<String> l = clipList();
+        l.remove(raw);
+        saveClip(l);
+        buildKeys();
+    }
+
+    void pasteLatest() {
+        onClip();
+        ArrayList<String> l = clipList();
+        if (l.isEmpty()) return;
+        String x = l.get(0);
+        typeRaw(x.startsWith("\u0002") ? x.substring(1) : x);
+    }
+
+    // ---------- convert whole text ----------
+    String convAr(String s) {
+        StringBuilder sb = new StringBuilder();
+        boolean tat = (arStyle == 1 || arStyle == 4);
+        boolean tash = (arStyle >= 2 && arStyle <= 4);
+        char p = 0;
+        int mi = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == 0x0640 || (c >= 0x064B && c <= 0x0652)) continue;
+            if (!(c >= 0x0621 && c <= 0x064A)) {
+                sb.append(c);
+                p = 0;
+                continue;
+            }
+            String out = String.valueOf(c);
+            if (tat && p != 0 && joinsNext(p)) out = "\u0640" + out;
+            if (tash) out = arStyle == 2 ? out + MARKS[0] : out + MARKS[mi++ % 3];
+            sb.append(out);
+            p = c;
+        }
+        return sb.toString();
+    }
+
+    String convText(String s) {
+        return lang == 0 ? Fonts.conv(enStyle, s) : convAr(s);
+    }
+
+    void convertAll() {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        clearCur();
+        CharSequence sel = ic.getSelectedText(0);
+        if (sel != null && sel.length() > 0) {
+            ic.commitText(convText(sel.toString()), 1);
+            refreshSugg();
+            return;
+        }
+        ExtractedText et = ic.getExtractedText(new ExtractedTextRequest(), 0);
+        String txt = (et != null && et.text != null) ? et.text.toString() : "";
+        if (txt.trim().isEmpty()) return;
+        ic.performContextMenuAction(android.R.id.selectAll);
+        ic.commitText(convText(txt), 1);
+        refreshSugg();
     }
 }
