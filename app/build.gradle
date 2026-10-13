@@ -1,0 +1,38 @@
+plugins { id 'com.android.application' }
+def ksPath = System.getenv('KS_FILE')
+def ksPass = System.getenv('KS_PASS')
+def hasKs = ksPath && ksPass && file(ksPath).exists() && file(ksPath).length() > 0
+android {
+    namespace 'com.fontcopy.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.fontcopy.app'
+        minSdk 21
+        targetSdk 34
+        versionCode 19
+        versionName '1.8.10'
+    }
+    signingConfigs {
+        main {
+            if (hasKs) {
+                storeFile file(ksPath)
+                storePassword ksPass
+                keyAlias 'fontapp'
+                keyPassword ksPass
+            }
+        }
+    }
+    buildTypes {
+        debug { if (hasKs) signingConfig signingConfigs.main }
+        release { minifyEnabled false }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        encoding 'UTF-8'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.12.0'
+}
