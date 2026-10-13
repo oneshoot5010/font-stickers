@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+:root{--u:calc(100vw/410);--a1:#9a5cf5;--a2:#6a62f2;--a3:#5236d0;--fs:12;
+--bg:#080819;--g1:#4a1659;--g2:#2a1058;--g3:#101046;--panel:#0e0f2e;--c1:#171a46;--c2:#12153c;--line:#272b66;--txt:#fff;--muted:#a5a8d0;--meta:#7d92e8;--side1:#0d0f33;--side2:#0a0b27;--sline:#14174a;--sbord:#24286a;--nav:#0d0f2e;--navtxt:#b4b7e6;--chip:#0f1236;--chipl:#1d2260;--badge:#0b0d2c;--btn1:#3b3fb4;--btn2:#2b2f90;--tdiv:#1f2358;--field:#14173f}
+:root[data-theme=light]{--bg:#f1f0fb;--g1:#e6d4fa;--g2:#d6dcff;--g3:#e3e6ff;--panel:#ffffff;--c1:#ffffff;--c2:#f7f6ff;--line:#d9d6f5;--txt:#1a1a3a;--muted:#6b6b92;--meta:#5560c8;--side1:#ffffff;--side2:#f7f6ff;--sline:#ebe9fb;--sbord:#d9d6f5;--nav:#ffffff;--navtxt:#6b6b92;--chip:#ffffff;--chipl:#d9d6f5;--btn1:#5b60e0;--btn2:#4448c4;--tdiv:#e6e3fa;--field:#ffffff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+html,body{height:100%;overflow:hidden;color:var(--txt);font-family:system-ui,Roboto,sans-serif;background:var(--bg)}
+body{position:relative;background:radial-gradient(ellipse at 15% 92%,var(--g1) 0,transparent 42%),radial-gradient(ellipse at 95% 70%,var(--g2) 0,transparent 45%),radial-gradient(ellipse at 10% 0,var(--g3) 0,transparent 55%),var(--bg)}
+input{-webkit-user-select:text;user-select:text}
+.top{padding:calc(var(--u)*6) calc(var(--u)*14) 0 calc(var(--u)*14)}
+.search{height:calc(var(--u)*38);display:flex;align-items:center;border-radius:calc(var(--u)*20);padding:0 calc(var(--u)*4) 0 calc(var(--u)*6);background:var(--panel);border:calc(var(--u)*1.5) solid var(--a2);box-shadow:0 0 calc(var(--u)*10) #5b3fd033}
+.pen{width:calc(var(--u)*27);height:calc(var(--u)*27);border-radius:50%;background:var(--c2);display:flex;align-items:center;justify-content:center;flex:0 0 calc(var(--u)*27);color:var(--txt)}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--txt);font-size:calc(var(--u)*11.5);margin-left:calc(var(--u)*9)}
+.search input::placeholder{color:var(--muted)}
+.clear{width:calc(var(--u)*36);height:calc(var(--u)*36);border-radius:50%;border:0;background:#ff2d78;display:flex;align-items:center;justify-content:center;box-shadow:0 0 calc(var(--u)*10) #ff2d7899;flex:0 0 calc(var(--u)*36)}
+.cnt{font-size:calc(var(--u)*8.5);color:var(--muted);margin:calc(var(--u)*5) 0 calc(var(--u)*5) calc(var(--u)*23);height:calc(var(--u)*11)}
+.chips{display:flex;gap:calc(var(--u)*10);overflow-x:auto;scrollbar-width:none;padding:calc(var(--u)*4) calc(var(--u)*6);margin:calc(var(--u)*-4) calc(var(--u)*-6)}.chips::-webkit-scrollbar{display:none}
+.chip{height:calc(var(--u)*29);border-radius:calc(var(--u)*15);display:flex;align-items:center;justify-content:center;gap:calc(var(--u)*7);flex:0 0 auto;padding:0 calc(var(--u)*16);white-space:nowrap;font-size:calc(var(--u)*12);font-weight:500;color:var(--txt);background:var(--chip);border:calc(var(--u)*1) solid var(--chipl)}
+.chip.on{background:linear-gradient(90deg,var(--a1),var(--a2));border-color:transparent;color:#fff;box-shadow:0 0 calc(var(--u)*10) #7a5cf033}
+.chip img{height:calc(var(--u)*19);border-radius:calc(var(--u)*6);background:var(--badge)}
+.c1{min-width:calc(var(--u)*92)}.c2{min-width:calc(var(--u)*118)}.c3{min-width:calc(var(--u)*112)}.chip .em{font-size:calc(var(--u)*15);line-height:1}
+.main{position:absolute;left:0;right:0;top:calc(var(--u)*101);bottom:0;padding:0 calc(var(--u)*10) 0 calc(var(--u)*9);display:flex;gap:calc(var(--u)*12)}
+.side{width:calc(var(--u)*75);flex:0 0 calc(var(--u)*75);border-radius:calc(var(--u)*11);border:calc(var(--u)*1) solid var(--sbord);background:linear-gradient(180deg,var(--side1),var(--side2));display:flex;flex-direction:column;margin-bottom:calc(var(--u)*8);overflow:hidden}
+.cats{flex:1;overflow-y:auto;scrollbar-width:none;padding:calc(var(--u)*2) calc(var(--u)*1)}
+.cats::-webkit-scrollbar{display:none}
+.cat{height:calc(var(--u)*46);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:var(--txt);border-radius:calc(var(--u)*10);gap:calc(var(--u)*1);border-bottom:calc(var(--u)*1) solid var(--sline)}
+.cat img,.cat svg{width:calc(var(--u)*23);height:calc(var(--u)*23);object-fit:contain;border-radius:calc(var(--u)*7);background:var(--badge);padding:calc(var(--u)*1)}
+.cat.on{background:linear-gradient(180deg,var(--a1),var(--a3));box-shadow:0 0 calc(var(--u)*8) #7a5cf055;border-color:transparent;color:#fff;height:calc(var(--u)*40);margin-bottom:calc(var(--u)*2)}
+.cat.more{flex:0 0 calc(var(--u)*40);border:0;border-top:calc(var(--u)*1) solid var(--sline);border-radius:0}
+.dots{font-size:calc(var(--u)*14);letter-spacing:calc(var(--u)*1);line-height:calc(var(--u)*8);font-weight:900}
+.list{flex:1;min-width:0;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--u)*50)}
+.list::-webkit-scrollbar{display:none}
+.card{min-height:calc(var(--u)*40);padding-top:calc(var(--u)*4);padding-bottom:calc(var(--u)*4);margin-bottom:calc(var(--u)*4.5);border-radius:calc(var(--u)*9);background:linear-gradient(180deg,var(--c1),var(--c2));border:calc(var(--u)*1) solid var(--line);display:flex;align-items:center;padding-left:calc(var(--u)*2.5);padding-right:calc(var(--u)*5);gap:calc(var(--u)*6);box-shadow:0 calc(var(--u)*1) calc(var(--u)*4) #0003}
+.card>img{width:calc(var(--u)*33);height:calc(var(--u)*33);border-radius:calc(var(--u)*8);flex:0 0 calc(var(--u)*33);align-self:center}
+.txt{flex:1;min-width:0;min-height:calc(var(--u)*30);border-left:calc(var(--u)*1) solid var(--tdiv);padding:calc(var(--u)*2) calc(var(--u)*3) calc(var(--u)*2) calc(var(--u)*9);display:flex;flex-direction:column;justify-content:center}
+.out{font-size:calc(var(--u)*var(--fs));line-height:1.5;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;padding:calc(var(--u)*1.5) calc(var(--u)*2);color:var(--txt)}
+.meta{font-size:calc(var(--u)*9.5);color:var(--meta);margin-top:calc(var(--u)*1.5);padding-left:calc(var(--u)*2);white-space:nowrap}
+.btn{width:calc(var(--u)*27.5);height:calc(var(--u)*27.5);flex:0 0 calc(var(--u)*27.5);border-radius:calc(var(--u)*9);border:0;background:linear-gradient(180deg,var(--btn1),var(--btn2));display:flex;align-items:center;justify-content:center}
+.card.fav{border-color:#ff2d78aa}
+nav{position:absolute;right:calc(var(--u)*8);bottom:0;left:calc(var(--u)*8);height:calc(var(--u)*40);display:flex;border-radius:calc(var(--u)*14) calc(var(--u)*14) 0 0;background:var(--nav);border:calc(var(--u)*1) solid var(--sbord);border-bottom:0;box-shadow:0 calc(var(--u)*-4) calc(var(--u)*14) #0004}
+nav.home{left:calc(var(--u)*87)}
+nav div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--u)*8);color:var(--navtxt);gap:calc(var(--u)*1.5);position:relative}
+nav div.on{color:var(--a1)}
+nav div.on:after{content:"";position:absolute;bottom:0;left:25%;right:25%;height:calc(var(--u)*2);background:var(--a1);border-radius:calc(var(--u)*2)}
+nav svg{width:calc(var(--u)*15);height:calc(var(--u)*15)}
+.page{padding:calc(var(--u)*4) calc(var(--u)*2) calc(var(--u)*10)}
+.h1{font-size:calc(var(--u)*15);font-weight:700;margin:calc(var(--u)*2) calc(var(--u)*4) calc(var(--u)*10)}
+.sec{font-size:calc(var(--u)*9);letter-spacing:.5u;color:var(--muted);margin:calc(var(--u)*12) calc(var(--u)*4) calc(var(--u)*6);text-transform:uppercase}
+.box{background:linear-gradient(180deg,var(--c1),var(--c2));border:calc(var(--u)*1) solid var(--line);border-radius:calc(var(--u)*12);overflow:hidden}
+.row{display:flex;align-items:center;gap:calc(var(--u)*10);padding:calc(var(--u)*9) calc(var(--u)*10);border-bottom:calc(var(--u)*1) solid var(--tdiv);min-height:calc(var(--u)*40)}
+.row:last-child{border-bottom:0}
+.row .l{flex:1;font-size:calc(var(--u)*11)}
+.row .s{font-size:calc(var(--u)*8.5);color:var(--muted);margin-top:calc(var(--u)*2)}
+.seg{display:flex;background:var(--field);border:calc(var(--u)*1) solid var(--line);border-radius:calc(var(--u)*10);padding:calc(var(--u)*2);gap:calc(var(--u)*2)}
+.seg span{padding:calc(var(--u)*5) calc(var(--u)*10);border-radius:calc(var(--u)*8);font-size:calc(var(--u)*10);color:var(--muted)}
+.seg span.on{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff}
+.dot{width:calc(var(--u)*22);height:calc(var(--u)*22);border-radius:50%;border:calc(var(--u)*2) solid transparent}
+.dot.on{border-color:var(--txt)}
+.sw{width:calc(var(--u)*36);height:calc(var(--u)*21);border-radius:calc(var(--u)*11);background:var(--line);position:relative;flex:0 0 calc(var(--u)*36)}
+.sw:after{content:"";position:absolute;top:calc(var(--u)*2.5);left:calc(var(--u)*2.5);width:calc(var(--u)*16);height:calc(var(--u)*16);border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:linear-gradient(90deg,var(--a1),var(--a2))}
+.sw.on:after{left:calc(var(--u)*17.5)}
+.field{width:100%;background:var(--field);border:calc(var(--u)*1) solid var(--line);border-radius:calc(var(--u)*9);color:var(--txt);font-size:calc(var(--u)*11);padding:calc(var(--u)*8) calc(var(--u)*10);outline:0;margin-top:calc(var(--u)*6)}
+.act{width:100%;height:calc(var(--u)*34);border-radius:calc(var(--u)*10);border:calc(var(--u)*1) solid var(--line);background:var(--field);color:var(--txt);font-size:calc(var(--u)*11);margin-top:calc(var(--u)*6)}
+.act.red{color:#ff5c7c}
+.hero{border-radius:calc(var(--u)*14);padding:calc(var(--u)*18) calc(var(--u)*10) calc(var(--u)*14);text-align:center;background:linear-gradient(160deg,var(--a2),var(--a3) 60%,#1a0f48);box-shadow:0 calc(var(--u)*4) calc(var(--u)*18) #0005;position:relative;overflow:hidden;color:#fff}
+.hero:before{content:"";position:absolute;right:calc(var(--u)*-30);top:calc(var(--u)*-30);width:calc(var(--u)*110);height:calc(var(--u)*110);border-radius:50%;background:#ffffff14}
+.avatar{width:calc(var(--u)*62);height:calc(var(--u)*62);border-radius:50%;margin:0 auto calc(var(--u)*8);background:linear-gradient(135deg,#ffd36a,#ff5ca8);color:#2a1060;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*22);font-weight:800;border:calc(var(--u)*3) solid #ffffff55}
+.nm{font-size:calc(var(--u)*15);font-weight:700}
+.pill{display:inline-block;margin-top:calc(var(--u)*6);padding:calc(var(--u)*3) calc(var(--u)*12);border-radius:calc(var(--u)*12);background:#ffffff26;font-size:calc(var(--u)*9.5);letter-spacing:.5u}
+.ic{width:calc(var(--u)*30);height:calc(var(--u)*30);border-radius:calc(var(--u)*9);display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*15);flex:0 0 calc(var(--u)*30);color:#fff}
+.go{font-size:calc(var(--u)*9.5);padding:calc(var(--u)*5) calc(var(--u)*11);border-radius:calc(var(--u)*9);background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;font-weight:600}
+.arrow{color:var(--muted);font-size:calc(var(--u)*14)}
+.foot{text-align:center;color:var(--muted);font-size:calc(var(--u)*9);margin-top:calc(var(--u)*14);line-height:1.6}
+.empty{text-align:center;color:var(--muted);font-size:calc(var(--u)*10);margin-top:calc(var(--u)*50)}
+#welcome{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto}
+.bar{height:calc(var(--u)*6);border-radius:3px;background:var(--line);margin:calc(var(--u)*6) calc(var(--u)*4) 0;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a1),var(--a2));border-radius:3px;transition:.3s}
+button.go{border:0;font-family:inherit}
+#rate{position:fixed;inset:0;z-index:60;background:#000a;display:none;align-items:center;justify-content:center;padding:20px}
+.rbox{background:var(--panel);border:calc(var(--u)*1) solid var(--line);border-radius:calc(var(--u)*14);padding:calc(var(--u)*16);width:100%;max-width:calc(var(--u)*300);text-align:center;direction:rtl;color:var(--txt)}
+.rbox .act{margin-top:calc(var(--u)*6)}
+#sheet{position:fixed;inset:0;z-index:50;background:#000a;display:none;align-items:flex-end}
+.sbox{width:100%;max-height:94%;overflow-y:auto;background:var(--panel);border-top:calc(var(--u)*1) solid var(--line);border-radius:calc(var(--u)*16) calc(var(--u)*16) 0 0;padding:calc(var(--u)*12) calc(var(--u)*14) calc(var(--u)*16);color:var(--txt)}
+.sbox canvas{display:block;margin:calc(var(--u)*8) auto;max-width:100%;max-height:40vh;border-radius:calc(var(--u)*10);border:calc(var(--u)*1) solid var(--line)}
+.shead{display:flex;align-items:center;justify-content:space-between}
+.shead .x{width:calc(var(--u)*28);height:calc(var(--u)*28);display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--field);color:var(--muted)}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*8);margin:calc(var(--u)*6) 0}
+.pri{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0}
+.two{display:flex;gap:calc(var(--u)*6)}
+.two .act{flex:1;width:auto}
+</style>
+</head>
+<body>
+<div class="top" id="top">
+  <div class="search">
+    <div class="pen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg></div>
+    <input id="q" placeholder="Type text to ✨ Convert" autocomplete="off" autocapitalize="off">
+    <button class="clear" id="clr"><svg width="15" height="15" viewBox="0 0 24 24" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+  </div>
+  <div class="cnt" id="cnt">0 chars</div>
+  <div class="chips" id="chips"></div>
+</div>
+<div class="main" id="main">
+  <div class="side"><div class="cats" id="cats"></div>
+    <div class="cat more" id="more"><div class="dots">•••</div>More</div></div>
+  <div class="list" id="list"></div>
+</div>
+<nav id="nav" class="home">
+  <div data-t="home" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>Home</div>
+  <div data-t="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 17l-5.6 3 1.3-6.2L3 9.5l6.3-.7z"/></svg>Favorites</div>
+  <div data-t="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h8"/></svg>History</div>
+  <div data-t="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>اعدادات</div>
+  <div data-t="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>Developer</div>
+</nav>
+<div id="welcome" style="display:none"></div>
+<div id="rate"><div class="rbox">
+  <div style="font-size:calc(var(--u)*14);font-weight:700">عجبك التطبيق؟ ⭐</div>
+  <div style="font-size:calc(var(--u)*9);color:var(--muted);margin:calc(var(--u)*8) 0 calc(var(--u)*12)">تقييمك بيساعدنا نكمل ونطور.</div>
+  <button class="act" id="rateYes" style="background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0">قيّم التطبيق</button>
+  <button class="act" id="rateLater">بعدين</button>
+  <button class="act red" id="rateNo">لا، شكراً</button>
+</div></div>
+<div id="sheet" onclick="if(event.target===this)closeSheet()"><div class="sbox" dir="rtl">
+  <div class="shead"><div class="h1" style="margin:0">معاينة ومشاركة</div><div class="x" onclick="closeSheet()">✕</div></div>
+  <canvas id="cv"></canvas>
+  <div class="srow"><div id="bgs" style="display:flex;gap:6px"></div><div class="seg" id="szs"></div></div>
+  <div class="srow"><div style="font-size:calc(var(--u)*10)">علامة التطبيق على الصورة</div><div class="sw on" id="mk" onclick="sh.mark=!sh.mark;sheetRender()"></div></div>
+  <button class="act pri" onclick="shareImg()">مشاركة كصورة 🖼️</button>
+  <div class="two"><button class="act" onclick="shareTxt()">مشاركة كنص</button><button class="act" onclick="copySheet()">نسخ</button></div>
+</div></div>
+<script src="data.js"></script>
+<script>
+const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ',a='abcdefghijklmnopqrstuvwxyz',D='0123456789';
+function off(u,l,d){return t=>[...t].map(c=>{let i=A.indexOf(c);if(i>=0)return String.fromCodePoint(u+i);i=a.indexOf(c);if(i>=0)return String.fromCodePoint(l+i);i=D.indexOf(c);if(i>=0&&d)return String.fromCodePoint(d+i);return c}).join('')}
+const dsEx={C:'ℂ',H:'ℍ',N:'ℕ',P:'ℙ',Q:'ℚ',R:'ℝ',Z:'ℤ'};
+const ds=t=>[...t].map(c=>dsEx[c]||off(0x1D538,0x1D552,0x1D7D8)(c)).join('');
+const sc='ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ';
+const smallcaps=t=>[...t].map(c=>{const i=a.indexOf(c.toLowerCase());return i>=0?[...sc][i]:c}).join('');
+const circled=t=>[...t].map(c=>{let i=A.indexOf(c);if(i>=0)return String.fromCodePoint(0x24B6+i);i=a.indexOf(c);if(i>=0)return String.fromCodePoint(0x24D0+i);return c}).join('');
+const wide=t=>[...t].map(c=>c===' '?'\u3000':(c.charCodeAt(0)>32&&c.charCodeAt(0)<127?String.fromCharCode(c.charCodeAt(0)+0xFEE0):c)).join('');
+const FONTS=[
+ {n:'Bold Script',f:off(0x1D4D0,0x1D4EA,0x1D7CE)},
+ {n:'Double Struck',f:ds},
+ {n:'Fraktur Bold',f:off(0x1D56C,0x1D586,0x1D7CE)},
+ {n:'Bold Serif',f:off(0x1D400,0x1D41A,0x1D7CE)},
+ {n:'Monospace',f:off(0x1D670,0x1D68A,0x1D7F6)},
+ {n:'Small Caps',f:smallcaps},
+ {n:'Circled',f:circled},
+ {n:'Wide',f:wide},
+];
+const AR_RE=/[\u0600-\u06FF]/;
+const NOJOIN='اأإآدذرزوؤءةى';
+const isAr=c=>c>='\u0621'&&c<='\u064A';
+function tatweel(t){const a=[...t];let o='';for(let i=0;i<a.length;i++){o+=a[i];const n=a[i+1];if(n&&isAr(a[i])&&!NOJOIN.includes(a[i])&&isAr(n)&&n!=='ء')o+='\u0640'}return o}
+function tashkeel(t,m){const M=[['\u064E'],['\u064F'],['\u0650'],['\u064E','\u064F','\u0650'],['\u0651\u064E']][m]||['\u064E'];let k=0;return [...t].map(c=>isAr(c)&&c!=='ء'?c+M[k++%M.length]:c).join('')}
+const AR_FR=['꧁༒ {t} ༒꧂','❥ {t} ❥','★彡 {t} 彡★','『 {t} 』','【 {t} 】','﴾ {t} ﴿','•°¯`•• {t} ••´¯°•','ـﮩ٨ـﮩﮩ٨ـ {t} ـﮩ٨ـﮩﮩ٨ـ','๛ {t} ๛','✿ {t} ✿','☆•°{t}°•☆','◥꧁ {t} ꧂◤','♛ {t} ♛','⚔ {t} ⚔','─═≡ {t} ≡═─','◄♥ {t} ♥►'];
+const AR_STYLES=[
+ {n:'Tatweel',f:tatweel},
+ {n:'Tashkeel',f:t=>tashkeel(t,0)},
+ {n:'Tashkeel Mix',f:t=>tashkeel(t,3)},
+ {n:'Tatweel Tashkeel',f:t=>tashkeel(tatweel(t),3)},
+ ...AR_FR.map((fr,i)=>({n:'Frame '+(i+1),f:t=>fr.replace('{t}',t)})),
+ ...AR_FR.slice(0,8).map((fr,i)=>({n:'Tatweel Frame '+(i+1),f:t=>fr.replace('{t}',tatweel(t))}))
+];
+const NAME_T=[['Free Fire','{t}亗'],['Free Fire','亗{t}亗'],['Free Fire','{t}ッ'],['Free Fire','ꜱᴛʏʟᴇ丶{sc}'],['PUBG','{sc}丶ᴾᴿᴼ'],['PUBG','xX{t}Xx'],['PUBG','「{t}」'],['Free Fire','{ds}亗'],['Free Fire','亗{bs}亗'],['Free Fire','{fr}ッ'],['Free Fire','FF丶{t}'],['Free Fire','{t}丶FF'],['Free Fire','★彡{t}彡★'],['Free Fire','⚔{t}⚔'],['Free Fire','🔥{bs}🔥'],['Free Fire','{sc}亗★'],['PUBG','xX{bs}Xx'],['PUBG','xX_{t}_Xx'],['PUBG','⚔{ds}⚔'],['PUBG','ミ★{t}★彡'],['PUBG','PUBG丶{t}'],['PUBG','{t}丶PUBG'],['PUBG','『{bs}』'],['PUBG','♛{sc}♛'],['PUBG','︻デ═一{t}'],['PUBG','🎯{t}🎯'],['Pro','{bs}丶ᴾʳᵒ'],['Legend','{ds}丶ᴸᵉᵍᵉⁿᵈ'],['King','♛{t}♛'],['King','{fr}丶ᴷⁱⁿᵍ'],['Boss','{t}丶ᴮᵒˢˢ'],['Sniper','{t}︻デ═一'],['Sniper','︻╦╤─ {t}'],['Ghost','{t}☠'],['Ghost','☠{sc}☠'],['Fire','🔥{t}🔥'],['Fire','{t}🔥'],['Dark','⚡{bs}⚡'],['Dark','{t}丶ᴰᵃʳᵏ'],['Short','{t}ツ'],['Short','ツ{t}'],['Instagram','{t}.✨'],['Instagram','✨{sc}✨'],['Instagram','{t}_official']];
+const nameFmt=(p,t)=>p.replace('{sc}',smallcaps(t)).replace('{bs}',off(0x1D4D0,0x1D4EA,0x1D7CE)(t)).replace('{ds}',ds(t)).replace('{fr}',off(0x1D56C,0x1D586,0x1D7CE)(t)).replace('{t}',t);
+const LINKS={
+ gh:'https://github.com/oneshoot5010',
+ wa:'https://wa.me/201044947639',
+ emoji:'https://github.com/oneshoot5010/emoji_stickers/releases/download/latest/emoji-stickers.apk',
+ rafiq:'https://github.com/oneshoot5010/rafiq_app/releases/download/latest/app-arm64-v8a-release.apk',
+ leo:'https://github.com/oneshoot5010/leo-copilot/releases/download/latest/leo-copilot.apk'
+};
+function go(k){const u=LINKS[k];if(window.Android)Android.open(u);else window.open(u)}
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ACC=[['بنفسجي','#9a5cf5','#6a62f2','#5236d0'],['وردي','#ff5ca8','#c23cf0','#a02ad0'],['أزرق','#3d9bff','#2f5cf0','#2240c0'],['أخضر','#27d99a','#16a37f','#0f7a60'],['برتقالي','#ffa63d','#f05a2a','#c03a15']];
+let cfg=Object.assign({theme:'dark',acc:0,vib:true,keep:true,remote:true,fs:13.5,sample:'Font Copy Paste'},ld('cfg',{}));
+if(!cfg.fsv){cfg.fs=({10:11.5,12:13.5,14.5:16})[cfg.fs]||cfg.fs;cfg.fsv=2;try{localStorage.setItem('cfg',JSON.stringify(cfg))}catch(e){}}
+let favs=ld('favs',[]),hist=ld('hist',[]),cat='all',tab='home',chip='all';
+const $=id=>document.getElementById(id);
+function applyCfg(){
+  let th=cfg.theme;if(th==='auto')th=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  const r=document.documentElement;r.dataset.theme=th;
+  const c=ACC[cfg.acc]||ACC[0];r.style.setProperty('--a1',c[1]);r.style.setProperty('--a2',c[2]);r.style.setProperty('--a3',c[3]);
+  r.style.setProperty('--fs',cfg.fs);
+}
+function setCfg(k,v){cfg[k]=v;sv('cfg',cfg);applyCfg();render()}
+const svg=(b,g)=>`<svg viewBox="0 0 24 24"><defs>${g||''}</defs>${b}</svg>`;
+const grad=(id,c1,c2)=>`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
+const SIC={
+ fire:svg('<path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" fill="url(#gf)"/>',grad('gf','#ffb43a','#ff4a1c')),
+ smile:svg('<circle cx="12" cy="12" r="9.5" fill="url(#gs)"/><circle cx="9" cy="10" r="1.3" fill="#3a2a00"/><circle cx="15" cy="10" r="1.3" fill="#3a2a00"/><path d="M7.5 14c1 2.6 8 2.6 9 0" stroke="#3a2a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>',grad('gs','#ffe066','#ffa11c')),
+ bolt:svg('<path d="M13.5 2L5 14h6l-1.5 8L19 9.5h-6z" fill="url(#gb)"/>',grad('gb','#ff7a7a','#d81f3a')),
+ gym:svg('<g fill="url(#gg)"><rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.3" height="11" rx="1.2"/><rect x="7.5" y="11" width="9" height="2" rx="1"/><rect x="16.2" y="6.5" width="3.3" height="11" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1"/></g>',grad('gg','#5be3ff','#2b6bff')),
+ sad:svg('<path d="M12 21S3.5 15.5 3.5 9.8a4.6 4.6 0 0 1 8.5-2.4 4.6 4.6 0 0 1 8.5 2.4C20.5 15.5 12 21 12 21z" fill="url(#gh)"/><path d="M12 7.2l-2 3.8 3 2.2-2 4.6" stroke="#0b0d2c" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',grad('gh','#ff6fb1','#b43cf0')),
+ brick:svg('<g fill="url(#gk)"><rect x="2" y="4" width="9" height="4.5" rx="1"/><rect x="12.5" y="4" width="9.5" height="4.5" rx="1"/><rect x="2" y="9.8" width="5" height="4.5" rx="1"/><rect x="8.5" y="9.8" width="7" height="4.5" rx="1"/><rect x="17" y="9.8" width="5" height="4.5" rx="1"/><rect x="2" y="15.6" width="9" height="4.5" rx="1"/><rect x="12.5" y="15.6" width="9.5" height="4.5" rx="1"/></g>',grad('gk','#ffb27a','#d9552a')),
+ om:svg('<text x="12" y="19" font-size="20" text-anchor="middle" fill="url(#go)" font-weight="700">ॐ</text>',grad('go','#ffe27a','#ff9a1c')),
+ ar:svg('<text x="12" y="19" font-size="22" text-anchor="middle" fill="url(#gar)" font-weight="700">ع</text>',grad('gar','#6ff0d4','#1aa6c9')),
+ tag:svg('<rect x="2.5" y="5" width="19" height="14" rx="3.5" fill="url(#gt)"/><circle cx="9" cy="11" r="2.3" fill="#0b0d2c"/><path d="M5.2 16.4c.7-2.4 6.1-2.4 7.6 0z" fill="#0b0d2c"/><rect x="14" y="9.6" width="5" height="1.6" rx=".8" fill="#0b0d2c"/><rect x="14" y="13" width="3.5" height="1.6" rx=".8" fill="#0b0d2c"/>',grad('gt','#8ad0ff','#6a62f2')),
+ gun:svg('<path d="M2 8h15.5l2.5 2.2V13h-7l-1.2 5H8L9 13H2z" fill="url(#gu)"/>',grad('gu','#b9c3d8','#5f6c88'))
+};
+SIC.crown=svg('<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="url(#gc)"/>',grad('gc','#ffe27a','#ff9a1c'));
+const SI={all:['img','all'],gamer:['svg','crown'],fonts:['img','alphabet'],arabic:['svg','ar'],names:['svg','tag'],freefireArray:['svg','fire'],emoticonArray:['svg','smile'],gameArray:['img','crazy'],attitudeArray:['img','attitude'],angryArray:['svg','bolt'],heartArray:['img','cute2'],cuteArray:['img','cute'],boyArray:['img','small'],girlArray:['img','fantasy'],gymArray:['svg','gym'],sadArray:['svg','sad'],bricksArray:['svg','brick'],hindiArray:['svg','om'],gunArray:['svg','gun']};
+const siHtml=id=>{const s=SI[id]||['img','all'];return s[0]==='img'?`<img src="ic/side_${s[1]}.png">`:SIC[s[1]]};
+let CATS=[];
+const CAT_REN={freefireArray:'FF Style'};
+function buildCats(){CATS=[{id:'all',name:'All'},{id:'fonts',name:'Letters'},{id:'arabic',name:'عربي'},{id:'names',name:'Nicknames'},{id:'gamer',name:'Gamer'},...STYLES.map(s=>({id:s.id,name:CAT_REN[s.id]||s.name}))]}
+buildCats();
+const BASE_STYLES=JSON.parse(JSON.stringify(STYLES)),BASE_NAMES=NAME_T.map(x=>x.slice());
+const CHIPS=[{id:'all',l:'All',c:'c1'},{id:'deco',l:'Fantasy',c:'c2'},{id:'fonts',l:'Alphabet',c:'c3'},{id:'ff',l:'Free Fire',c:'c4'},{id:'pubg',l:'PUBG',c:'c5'}],CHIPN={ff:'Free Fire',pubg:'PUBG'};
+const CHIPICON={all:'<svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3 6.8 7.4.7-5.6 4.9 1.7 7.2L12 17.8 5.5 21.6l1.7-7.2L1.6 9.5 9 8.8z"/></svg>',deco:'<img src="ic/chip_fantasy.png">',fonts:'<img src="ic/chip_abc.png">',ff:'<span class="em">🔥</span>',pubg:'<span class="em">🎯</span>'};
+const COPYSVG='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="13" rx="2" fill="#fff"/><path d="M16 5V4a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2"/></svg>';
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function items(){
+  const t=$('q').value||(cat==='arabic'?(AR_RE.test(cfg.sample||'')?cfg.sample:'استيكر فونت'):(cat==='gamer'?'Hero':(cfg.sample||'Font Copy Paste')));
+  const ar=AR_RE.test(t),inAll=cat==='all',out=[];
+  if(CHIPN[chip]){NAME_T.forEach(n=>{if(n[0]===CHIPN[chip])out.push({cat:n[0],text:nameFmt(n[1],t)})});return out}
+  if((inAll||cat==='fonts')&&chip!=='deco')FONTS.forEach(x=>{const r=x.f(t);if(r!==t||cat==='fonts')out.push({cat:x.n,text:r})});
+  if(chip!=='fonts'){
+    if((inAll&&ar)||cat==='arabic')AR_STYLES.forEach(x=>out.push({cat:x.n,text:x.f(t)}));
+    if(inAll||cat==='names')NAME_T.forEach(n=>out.push({cat:n[0],text:nameFmt(n[1],t)}));
+    if(cat==='gamer')gamerNames(t).forEach(s=>out.push({cat:'Gamer',text:s}));
+    STYLES.forEach(s=>{if(inAll||cat===s.id)s.items.forEach(p=>out.push({cat:s.name,text:p.replace(/\[\[t\]\]/g,t)}))});
+  }
+  return out;
+}
+function seg(key,opts,cur){return `<div class="seg">${opts.map(o=>`<span class="${o[0]===cur?'on':''}" onclick="setCfg('${key}',${typeof o[0]==='number'?o[0]:`'${o[0]}'`})">${o[1]}</span>`).join('')}</div>`}
+function sw(key){return `<div class="sw ${cfg[key]?'on':''}" onclick="setCfg('${key}',${!cfg[key]})"></div>`}
+function myStylesHtml(){
+  const mine=ld('mystyles',[]);
+  return `<div class="sec">ستايلاتي</div><div class="box">
+   <div class="row" style="display:block"><div class="l">ضيف ستايل خاص بيك<div class="s">كل سطر قالب، واكتب [[t]] مكان الاسم</div></div>
+   <input class="field" id="msName" placeholder="اسم الستايل" maxlength="24" style="margin-top:calc(var(--u)*6)">
+   <textarea class="field" id="msItems" rows="4" dir="ltr" placeholder="★[[t]]★&#10;♛[[t]]♛" style="margin-top:calc(var(--u)*6)"></textarea>
+   <button class="act pri" onclick="addMyStyle()">إضافة الستايل</button></div>
+   ${mine.map(s=>`<div class="row"><div class="l">${s.name}<div class="s">${s.items.length} قالب</div></div><button class="go" onclick="delMyStyle('${s.id}')">حذف</button></div>`).join('')}
+  </div>`;
+}
+function addMyStyle(){
+  const name=(($('msName')&&$('msName').value)||'').trim().slice(0,24);
+  const items=(($('msItems')&&$('msItems').value)||'').split('\n').map(x=>x.trim()).filter(x=>x.indexOf('[[t]]')>=0&&x.length<=200).slice(0,30);
+  if(!name||!items.length){toast('اكتب اسم وقالب واحد على الأقل فيه [[t]]');return}
+  const mine=ld('mystyles',[]);
+  if(mine.length>=10){toast('وصلت للحد الأقصى (10 ستايلات)');return}
+  mine.push({id:'my'+Date.now(),name:esc(name),items});
+  sv('mystyles',mine);rebuildAll();render();toast('تمت إضافة الستايل ✓');
+}
+function delMyStyle(id){
+  sv('mystyles',ld('mystyles',[]).filter(s=>s.id!==id));
+  rebuildAll();render();toast('تم حذف الستايل');
+}
+let bioP='ig',bioName='',bioList=[];
+const BIO_LINES=['اللي يعرفني يعرف قيمتي 💎','ماشي بحلمي 🌙','Gamer | Creator 🎮','Just vibes ✨','حياتي مزاج 🌈','Stay Real 💯','Love • Peace • Games 🎯','اكتب بستايلك 🖋️'];
+const BIO_PLATS=[['ig','إنستجرام',150],['tt','تيك توك',80],['fb','فيسبوك',101],['sc','سناب شات',80],['x','X',160],['rd','ريديت',200]];
+const BIO_LIM=Object.fromEntries(BIO_PLATS.map(p=>[p[0],p[2]]));
+function bioHtml(){
+  return `<div class="page" dir="rtl"><div class="h1">مولّد البايو</div>
+  <div class="box" style="padding:calc(var(--u)*8)">
+   <input class="field" id="bioName" placeholder="اكتب اسمك أو لقبك" value="${esc(bioName)}" oninput="bioName=this.value;bioUpdate()">
+   <div class="seg" style="margin-top:calc(var(--u)*8);flex-wrap:wrap">${BIO_PLATS.map(p=>`<span class="${bioP===p[0]?'on':''}" onclick="bioP='${p[0]}';render()">${p[1]} (${p[2]})</span>`).join('')}</div>
+  </div>
+  <div class="sec">النتايج</div><div id="bioOut"></div></div>`;
+}
+function bioUpdate(){
+  const out=$('bioOut');if(!out)return;
+  const t=(bioName||'').trim();
+  bioList=[];
+  if(!t){out.innerHTML='<div class="empty">اكتب اسمك عشان تظهر النتايج</div>';return}
+  const names=[...gamerNames(t).slice(0,4),...FONTS.slice(0,4).map(x=>x.f(t))];
+  const lim=BIO_LIM[bioP],off=BIO_PLATS.findIndex(p=>p[0]===bioP)%BIO_LINES.length;
+  let html='';
+  names.forEach((nm,i)=>{
+    const line=BIO_LINES[(i*2+off)%BIO_LINES.length];
+    const opts=[nm+'\n'+line,nm].filter(x=>[...x].length<=lim);
+    if(!opts.length)return;
+    const txt=opts[0],n=bioList.length;bioList.push(txt);
+    html+=`<div class="card" style="height:auto;padding:calc(var(--u)*6) 0"><div class="txt"><div class="out" style="white-space:pre-line;display:block;-webkit-line-clamp:unset">${esc(txt)}</div><div class="meta">${[...txt].length} / ${lim}</div></div><button class="btn" onclick="copy(bioList[${n}])">${COPYSVG}</button></div>`;
+  });
+  out.innerHTML=html||'<div class="empty">الاسم طويل على الحد ده، جرب اسم أقصر</div>';
+}
+function copyCrash(){
+  const t=(window.Android&&Android.crashLog)?Android.crashLog():'';
+  if(!t){toast('مفيش أخطاء مسجلة ✓');return}
+  if(window.Android&&Android.copy)Android.copy(t);else navigator.clipboard&&navigator.clipboard.writeText(t);
+  toast('تم نسخ تقرير الأخطاء');
+}
+function clearCrash(){
+  if(window.Android&&Android.clearCrash){Android.clearCrash();toast('تم مسح تقرير الأخطاء')}else toast('متاح داخل التطبيق فقط');
+}
+function clearLearn(){
+  if(window.Android&&Android.clearLearn){Android.clearLearn();toast('تم مسح الكلمات المتعلمة')}else toast('متاح داخل التطبيق فقط');
+}
+let voiceSt=0,voiceMic=false,voicePct=0;
+function voiceRefresh(){try{voiceSt=window.Android&&Android.voiceState?Android.voiceState():0;voiceMic=!!(window.Android&&Android.voiceMic&&Android.voiceMic())}catch(e){}}
+function voiceHtml(){
+  voiceRefresh();
+  const st=voiceSt===2?`بيتحمل… ${voicePct}%`:voiceSt===1?'مثبت ✓ (موديل خفيف حوالي 158 ميجا)':'مش مثبت (حوالي 158 ميجا، بيتحمل مرة واحدة)';
+  const btn=voiceSt===1?'<button class="act red" onclick="voiceDelete()">حذف الموديل</button>':(voiceSt===2?'':'<button class="act pri" onclick="voiceDownload()">تحميل الموديل</button>');
+  const mic=voiceMic?'<div class="s">مفعّل ✓</div>':'<button class="act" onclick="voiceMicRequest()">اسمح بالميكروفون</button>';
+  return `<div class="sec">الكتابة الصوتية</div><div class="box">
+   <div class="row" style="display:block"><div class="l">إذن الميكروفون<div class="s">بيتستخدم للكتابة الصوتية في الكيبورد (محتاجة إنترنت)</div></div>${mic}</div>
+  </div>`;
+}
+function voiceDownload(){if(window.Android&&Android.voiceDownload){Android.voiceDownload();voiceSt=2;voicePct=0;render()}else toast('متاح داخل التطبيق فقط')}
+function voiceDelete(){if(window.Android&&Android.voiceDelete){Android.voiceDelete();toast('تم حذف الموديل');render()}}
+function voiceMicRequest(){if(window.Android&&Android.voiceMicRequest)Android.voiceMicRequest()}
+window.onVoice=function(p){
+  if(p===-2){voiceSt=0;toast('فشل التحميل، اتأكد من الإنترنت')}
+  else if(p>=100){voiceSt=1;toast('الموديل جاهز ✓')}
+  else if(p>=0){voiceSt=2;voicePct=p}
+  if(tab==='set')render();
+};
+const KB_COLORS=['#8a90c8','#ffffff','#ffd36a','#2ecc71','#3d9bff','#ff5ca8','#ff7a3d'];
+function kbGet(k){try{return window.Android&&Android.getKbPref?Android.getKbPref(k):0}catch(e){return 0}}
+function kbSet(k,i){if(window.Android&&Android.setKbPref)Android.setKbPref(k,i);render()}
+function kbDots(k){const cur=kbGet(k);return `<div style="display:flex;gap:8px;margin-top:calc(var(--u)*6);flex-wrap:wrap">${KB_COLORS.map((c,i)=>`<div class="dot ${i===cur?'on':''}" style="background:${c}" onclick="kbSet('${k}',${i})"></div>`).join('')}</div>`}
+function settingsHtml(){
+  return `<div class="page" dir="rtl"><div class="h1">اعدادات</div>
+  <div class="sec">المظهر</div><div class="box">
+   <div class="row"><div class="l">السمة</div>${seg('theme',[['dark','داكن'],['light','فاتح'],['auto','تلقائي']],cfg.theme)}</div>
+   <div class="row"><div class="l">لون التطبيق</div><div style="display:flex;gap:6px">${ACC.map((c,i)=>`<div class="dot ${i===cfg.acc?'on':''}" style="background:linear-gradient(135deg,${c[1]},${c[3]})" onclick="setCfg('acc',${i})"></div>`).join('')}</div></div>
+   <div class="row"><div class="l">حجم النص</div>${seg('fs',[[11.5,'صغير'],[13.5,'وسط'],[16,'كبير']],cfg.fs)}</div>
+  </div>
+  <div class="sec">السلوك</div><div class="box">
+   <div class="row"><div class="l">اهتزاز عند النسخ<div class="s">اهتزاز خفيف بعد كل نسخ</div></div>${sw('vib')}</div>
+   <div class="row"><div class="l">حفظ السجل<div class="s">حفظ آخر ما نسخته في تاب History</div></div>${sw('keep')}</div>
+   <div class="row" style="display:block"><div class="l">النص الافتراضي<div class="s">يظهر في الكروت لما خانة الكتابة فاضية</div></div><input class="field" dir="ltr" id="sample" value="${esc(cfg.sample)}" oninput="cfg.sample=this.value;sv('cfg',cfg)"></div>
+  </div>
+  <div class="sec">الكيبورد</div><div class="box">
+   <div class="row" style="display:block"><div class="l">كيبورد استيكر فونت<div class="s">اكتب بالخطوط والتطويل مباشرة في أي تطبيق</div></div>
+   ${setupHtml()}
+   <input class="field" placeholder="جرّب الكيبورد هنا..."></div>
+  </div>
+  ${voiceHtml()}
+  <div class="sec">ألوان الكيبورد</div><div class="box">
+   <div class="row" style="display:block"><div class="l">لون الأيقونة<div class="s">لون الحروف والأزرار الأساسية (الأول = لون الثيم)</div></div>${kbDots('iconC')}</div>
+   <div class="row" style="display:block"><div class="l">لون الأيقونة الصغيرة<div class="s">لون الكتابة الصغيرة: الستايلات، ABC، 123</div></div>${kbDots('smallC')}</div>
+  </div>
+  <div class="sec">التطبيق</div><div class="box">
+   <div class="row" onclick="updCheck(true)"><div class="l">فحص تحديث التطبيق<div class="s">بيشوف لو فيه نسخة أحدث وينزّلها من جوه التطبيق</div></div><div class="go">فحص</div></div>
+  </div>
+  <div class="sec">الستايلات</div><div class="box">
+   <div class="row"><div class="l">تحديث الستايلات تلقائياً<div class="s">يجيب زخارف جديدة من الإنترنت بدون تحديث التطبيق</div></div><div class="sw ${cfg.remote?'on':''}" onclick="toggleRemote()"></div></div>
+   <div class="row" onclick="manualRemote()"><div class="l">حدّث الآن<div class="s">${rstat.ts?'آخر تحديث: '+new Date(rstat.ts).toLocaleString('ar-EG'):'لسه محصلش تحديث'}</div></div><div class="go">تحديث</div></div>
+  </div>
+  ${myStylesHtml()}
+  <div class="sec">شارك واختصارات</div><div class="box">
+   <div class="row" onclick="shareApp()"><div class="ic" style="background:linear-gradient(135deg,var(--a1),var(--a2))">↗</div><div class="l">شارك التطبيق<div class="s">ابعت الرابط لأصحابك برسالة جاهزة</div></div><div class="arrow">›</div></div>
+   ${APPS.map(a=>`<div class="row" onclick="openApp('${a[1]}','${a[2]}')"><div class="ic" style="background:${a[3]}">${a[4]}</div><div class="l">${a[0]}<div class="s">افتح التطبيق</div></div><div class="arrow">›</div></div>`).join('')}
+   <div class="row" onclick="tab='bio';syncNav();render()"><div class="ic" style="background:linear-gradient(135deg,#ff5ca8,#9a5cf5)">✍️</div><div class="l">مولّد البايو<div class="s">بايو مزخرف لإنستجرام وتيك توك</div></div><div class="arrow">›</div></div>
+   <div class="row" onclick="showWelcome()"><div class="ic" style="background:#3a3f80">?</div><div class="l">شرح التفعيل<div class="s">اعرض خطوات تفعيل الكيبورد تاني</div></div><div class="arrow">›</div></div>
+  </div>
+  <div class="sec">البيانات</div>
+  <button class="act red" onclick="favs=[];sv('favs',favs);toast('تم مسح المفضلة')">مسح المفضلة</button>
+  <button class="act red" onclick="hist=[];sv('hist',hist);toast('تم مسح السجل')">مسح السجل</button>
+  <button class="act red" onclick="clearLearn()">مسح الكلمات المتعلمة</button>
+  <button class="act" onclick="copyCrash()">نسخ تقرير الأخطاء</button>
+  <button class="act" onclick="clearCrash()">مسح تقرير الأخطاء</button>
+  </div>`;
+}
+const APP_IC={
+ emoji:`<svg viewBox="0 0 48 48" width="100%" height="100%"><circle cx="24" cy="24" r="24" fill="#1e88e5"/><circle cx="24" cy="25" r="14" fill="#ffc83d"/><path d="M14.500 20.500q3-3.500 6 0M27.500 20.500q3-3.500 6 0" stroke="#5a3a00" stroke-width="2.200" fill="none" stroke-linecap="round"/><path d="M15.500 27h17c0 6-3.500 9.500-8.500 9.500S15.500 33 15.500 27z" fill="#7a2a1a"/><path d="M19 33.500q5 3 10 0q-1 2.500-5 2.500t-5-2.500z" fill="#ff7a8a"/><path d="M10 22c-2 3-1 6 1 6s3-3 1-6z" fill="#6ec6ff"/><path d="M38 22c2 3 1 6-1 6s-3-3-1-6z" fill="#6ec6ff"/></svg>`,
+ rafiq:`<svg viewBox="0 0 48 48" width="100%" height="100%"><circle cx="24" cy="24" r="24" fill="#111"/><circle cx="24" cy="24" r="19" fill="none" stroke="#c9a24a" stroke-width="1.600"/><path d="M29.500 11.500a13 13 0 1 0 0 25a10.500 10.500 0 0 1 0-25z" fill="#d9b25a"/></svg>`,
+ leo:`<svg viewBox="0 0 48 48" width="100%" height="100%"><circle cx="24" cy="24" r="24" fill="#fff"/><g stroke-linecap="round" fill="none" stroke-width="5.500"><path d="M14 14l20 20" stroke="#5eb8f5"/><path d="M34 14l-7 7M21 27l-7 7" stroke="#8fd0fa"/></g></svg>`
+};
+function devHtml(){
+  const app=(k,e,bg,n,s)=>`<div class="row" onclick="go('${k}')"><div class="ic" style="background:${bg}">${e}</div><div class="l">${n}<div class="s">${s}</div></div><div class="go">Download</div></div>`;
+  return `<div class="page"><div class="hero"><div class="avatar">MH</div><div class="nm">Mohamed Hassan Taha</div><div class="pill">DEVELOPER</div></div>
+  <div class="sec">Contact</div><div class="box">
+   <div class="row" onclick="go('gh')"><div class="ic" style="background:#24292f"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.700-.3-5.500-1.300-5.500-5.900 0-1.300.5-2.400 1.200-3.200-.1-.3-.5-1.500.1-3.200 0 0 1-.3 3.300 1.200a11.500 11.500 0 0 1 6 0c2.300-1.500 3.300-1.200 3.300-1.200.7 1.700.2 2.900.1 3.200.8.800 1.200 1.900 1.200 3.200 0 4.600-2.800 5.600-5.500 5.900.4.400.8 1.100.8 2.200v3.300c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg></div><div class="l">GitHub<div class="s">@oneshoot5010</div></div><div class="arrow">›</div></div>
+   <div class="row" onclick="go('wa')"><div class="ic" style="background:#25d366">💬</div><div class="l">WhatsApp<div class="s" dir="ltr" style="text-align:left">+20 104 494 7639</div></div><div class="arrow">›</div></div>
+  </div>
+  <div class="sec">My Apps</div><div class="box">
+   ${app('emoji',APP_IC.emoji,'transparent','استيكرات ايموجي','Emoji Stickers')}
+   ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
+   ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
+  </div>
+  <div class="foot">استيكر فونت · v1.9.10<br>Developed by Mohamed Hassan Taha</div></div>`;
+}
+const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
+const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
+const APPS=[['واتساب','com.whatsapp','https://wa.me/','#25d366',`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8.5c0 3 2.5 6 6 6l.8-1.2-1.8-.8-.8.8c-1-.4-2.2-1.6-2.6-2.6l.8-.8-.8-1.8z" fill="#fff"/></svg>`],['إنستجرام','com.instagram.android','https://www.instagram.com/','linear-gradient(135deg,#feda75,#d62976,#4f5bd5)',`<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.2" fill="#fff"/></svg>`],['تيك توك','com.zhiliaoapp.musically','https://www.tiktok.com/','#010101',`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 3h2.6c.2 2.4 1.8 4.2 4.4 4.4v2.7c-1.6 0-3-.5-4.4-1.4v6.3a5.6 5.6 0 1 1-5.6-5.6c.3 0 .6 0 .9.1v2.8a2.9 2.9 0 1 0 2.1 2.8z" fill="#fff"/></svg>`],['فيسبوك','com.facebook.katana','https://www.facebook.com/','#1877F2',`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M14 8h2V5h-2.5C11.6 5 10 6.6 10 9v2H8v3h2v7h3v-7h2.3l.4-3H13V9.3c0-.7.3-1.3 1-1.3z" fill="#fff"/></svg>`],['سناب شات','com.snapchat.android','https://www.snapchat.com/','#FFFC00',`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 4c-3 0-5 2.2-5 5v3l-1.5 1.5 2 .5c.5 1 1 1.5.5 2 1 .5 2 .8 4 .8s3-.3 4-.8c-.5-.5 0-1 .5-2l2-.5L17 12V9c0-2.8-2-5-5-5z" fill="#000"/></svg>`],['X (تويتر)','com.twitter.android','https://x.com/','#000000',`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 4h4.5l4 5.5L17.5 4H20l-6.2 7.2L20.5 20H16l-4.4-6L6.5 20H4l6.6-7.6z" fill="#fff"/></svg>`],['ريديت','com.reddit.frontpage','https://www.reddit.com/','#FF4500',`<svg viewBox="0 0 24 24" width="22" height="22"><ellipse cx="12" cy="13.5" rx="7.5" ry="5" fill="#fff"/><circle cx="18.5" cy="7.5" r="1.5" fill="#fff"/><circle cx="5" cy="11" r="1.8" fill="#fff"/><circle cx="19" cy="11" r="1.8" fill="#fff"/><circle cx="9.5" cy="12.5" r="1.2" fill="#FF4500"/><circle cx="14.5" cy="12.5" r="1.2" fill="#FF4500"/><path d="M9 15.5c1.8 1.2 4.2 1.2 6 0" stroke="#FF4500" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`]];
+function kbStatus(){
+  if(!(window.Android&&Android.isKeyboardEnabled))return{en:false,sel:false};
+  return{en:!!Android.isKeyboardEnabled(),sel:!!Android.isKeyboardSelected()};
+}
+function setupHtml(){
+  const s=kbStatus();const n=(s.en?1:0)+(s.sel?1:0);
+  const row=(ok,title,sub,fn)=>`<div class="row"><div class="ic" style="background:${ok?'#27d99a':'#3a3f80'}">${ok?'✓':'•'}</div><div class="l">${title}<div class="s">${sub}</div></div><button class="go" onclick="${fn}">${ok?'تم':'افتح'}</button></div>`;
+  return `<div class="box">${row(s.en,'١) فعّل الكيبورد','من إعدادات الكيبورد في الهاتف','kb(1)')}${row(s.sel,'٢) اختار الكيبورد','اختار "استيكر فونت كيبورد" من القائمة','kb(2)')}</div><div class="bar"><i style="width:${n*50}%"></i></div><div class="s" style="margin:calc(var(--u)*4) calc(var(--u)*4) 0">التقدم: ${n} من 2</div>`;
+}
+function welcomeHtml(){
+  return `<div class="page" dir="rtl" style="padding-top:calc(var(--u)*30)"><div class="h1">أهلاً بيك في استيكر فونت 👋</div>
+  <div style="margin:0 calc(var(--u)*4) calc(var(--u)*10);color:var(--muted);font-size:calc(var(--u)*10);line-height:1.6">عشان تكتب بالستايلات في أي تطبيق، محتاج تفعّل الكيبورد الأول. اتبع الخطوتين دول:</div>
+  ${setupHtml()}
+  <button class="act" style="margin-top:calc(var(--u)*16);height:auto;padding:calc(var(--u)*9);background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0" onclick="closeWelcome()">ابدأ الاستخدام</button>
+  <button class="act" style="border:0;background:none;color:var(--muted)" onclick="closeWelcome()">تخطي</button></div>`;
+}
+function showWelcome(){$('welcome').innerHTML=welcomeHtml();$('welcome').style.display='block'}
+function closeWelcome(){sv('seen',true);$('welcome').style.display='none'}
+function refreshSetup(){if($('welcome').style.display==='block')$('welcome').innerHTML=welcomeHtml();if(tab==='set')render()}
+window.onAndroidResume=refreshSetup;
+function shareApp(){if(window.Android&&Android.share)Android.share(SHARE_MSG);else if(navigator.share)navigator.share({text:SHARE_MSG});else toast('متاح داخل التطبيق فقط')}
+function openApp(pkg,url){if(window.Android&&Android.openApp)Android.openApp(pkg,url);else window.open(url)}
+function openUrl(url){if(window.Android&&Android.open)Android.open(url);else window.open(url)}
+const GAMER_W=['{x}','亗{x}亗','「{x}」','♛{x}♛','{x}丶ᴾᴿᴼ','xX{x}Xx','☠{x}☠','⚡{x}⚡','{x}ッ','༺{x}༻','꧁{x}꧂','【{x}】','ミ★{x}★彡','{x}︻デ═一','🔥{x}🔥','{x}ツ'];
+function gamerNames(t){
+  const F=[off(0x1D4D0,0x1D4EA,0x1D7CE),ds,off(0x1D56C,0x1D586,0x1D7CE),off(0x1D400,0x1D41A,0x1D7CE),off(0x1D670,0x1D68A,0x1D7F6),smallcaps,circled,x=>x];
+  const out=[],seen=new Set();
+  GAMER_W.forEach((w,j)=>{[j%8,(j+3)%8].forEach(k=>{const s=w.replace('{x}',()=>F[k](t));if(!seen.has(s)){seen.add(s);out.push(s)}})});
+  return out;
+}
+const BGS=[['#9a5cf5','#2a1070','#fff'],['#ff5ca8','#5a1a90','#fff'],['#27d99a','#0a3a5a','#fff'],['#ffa63d','#7a1a2a','#fff'],['#1a1a1a','#444444','#fff'],['#ffffff','#d9d2ff','#1a1a3a']];
+let sh={t:'',bg:0,h:1080,mark:true};
+const CFONT='system-ui,"Noto Sans",sans-serif';
+function wrapLines(g,tokens,maxW){const lines=[];let cur='';tokens.forEach(w=>{const test=cur?cur+' '+w:w;if(!cur||g.measureText(test).width<=maxW)cur=test;else{lines.push(cur);cur=w}});if(cur)lines.push(cur);return lines}
+function layout(g,t,maxW,maxH){
+  for(let s=150;s>=40;s-=6){g.font=s+'px '+CFONT;if(g.measureText(t).width<=maxW)return{s,lines:[t]}}
+  const tokens=t.split(/\s+/).filter(Boolean);
+  if(!tokens.length)return{s:60,lines:[t]};
+  let best=null;
+  for(let s=110;s>=24;s-=6){g.font=s+'px '+CFONT;const lines=wrapLines(g,tokens,maxW);best={s,lines};if(lines.length*s*1.35<=maxH&&lines.every(l=>g.measureText(l).width<=maxW))return best}
+  g.font=best.s+'px '+CFONT;
+  const w=Math.max(...best.lines.map(l=>g.measureText(l).width));
+  return{s:Math.max(10,Math.floor(best.s*maxW/Math.max(w,1))),lines:best.lines};
+}
+function drawCard(c,t,o){
+  const W=1080,H=o.h;c.width=W;c.height=H;
+  const g=c.getContext('2d'),b=BGS[o.bg]||BGS[0];
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,b[0]);gr.addColorStop(1,b[1]);
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.fillStyle=b[2];g.textAlign='center';g.textBaseline='middle';
+  try{g.direction=AR_RE.test(t)?'rtl':'ltr'}catch(e){}
+  const L=layout(g,t,W-140,H-360),lh=L.s*1.35,total=lh*L.lines.length;
+  g.font=L.s+'px '+CFONT;
+  if(o.bg!==5){g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=18}
+  const y0=(H-60)/2-total/2+lh/2;
+  L.lines.forEach((ln,i)=>g.fillText(ln,W/2,y0+i*lh));
+  g.shadowBlur=0;
+  if(o.mark){g.globalAlpha=.6;g.font='34px '+CFONT;g.fillText('استيكر فونت',W/2,H-90);g.globalAlpha=1}
+}
+function openSheet(t){sh.t=t;$('sheet').style.display='flex';sheetRender()}
+function closeSheet(){$('sheet').style.display='none'}
+function sheetRender(){
+  drawCard($('cv'),sh.t,sh);
+  $('bgs').innerHTML=BGS.map((b,i)=>`<div class="dot ${i===sh.bg?'on':''}" style="background:linear-gradient(135deg,${b[0]},${b[1]})" onclick="sh.bg=${i};sheetRender()"></div>`).join('');
+  $('szs').innerHTML=[[1080,'مربع'],[1920,'ستوري']].map(o=>`<span class="${o[0]===sh.h?'on':''}" onclick="sh.h=${o[0]};sheetRender()">${o[1]}</span>`).join('');
+  $('mk').className='sw '+(sh.mark?'on':'');
+}
+function shareImg(){
+  const c=$('cv');
+  try{
+    if(window.Android&&Android.shareImage)Android.shareImage(c.toDataURL('image/png').split(',')[1]);
+    else c.toBlob(b=>{const f=new File([b],'style.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]});else toast('متاح داخل التطبيق فقط')});
+  }catch(e){toast('تعذر إنشاء الصورة')}
+}
+function shareTxt(){if(window.Android&&Android.share)Android.share(sh.t);else if(navigator.share)navigator.share({text:sh.t});else toast('متاح داخل التطبيق فقط')}
+function copySheet(){copy(sh.t);closeSheet()}
+window.onAndroidBack=()=>{
+  if($('rate').style.display==='flex'){$('rate').style.display='none';return true}
+  if($('sheet').style.display==='flex'){closeSheet();return true}
+  if($('welcome').style.display==='block'){closeWelcome();return true}
+  if(tab!=='home'){tab='home';syncNav();render();return true}
+  return false;
+};
+const REMOTE_URL='https://raw.githubusercontent.com/oneshoot5010/font-stickers/main/styles.json';
+let rstat=ld('rstat',{ts:0}),rManual=false;
+const okId=s=>typeof s==='string'&&/^[A-Za-z0-9_-]{1,40}$/.test(s);
+const cl=(s,m)=>typeof s==='string'?s.slice(0,m):'';
+function mergeRemote(j){
+  if(!j||typeof j!=='object')return;
+  if(Array.isArray(j.styles))j.styles.slice(0,60).forEach(s=>{
+    if(!s||!okId(s.id)||!Array.isArray(s.items))return;
+    const items=s.items.filter(x=>typeof x==='string'&&x.indexOf('[[t]]')>=0&&x.length<=200).slice(0,300);
+    if(!items.length)return;
+    const ex=STYLES.find(z=>z.id===s.id);
+    if(ex){items.forEach(x=>{if(!ex.items.includes(x))ex.items.push(x)})}
+    else STYLES.push({id:s.id,icon:cl(s.icon,4),name:esc(cl(s.name,24)||s.id),items});
+  });
+  if(Array.isArray(j.names))j.names.slice(0,200).forEach(n=>{
+    if(!Array.isArray(n)||typeof n[0]!=='string'||typeof n[1]!=='string'||n[1].indexOf('{')<0||n[1].length>80)return;
+    NAME_T.push([esc(cl(n[0],24)),n[1]]);
+  });
+}
+function rebuildAll(){
+  STYLES.splice(0,STYLES.length,...JSON.parse(JSON.stringify(BASE_STYLES)));
+  NAME_T.splice(0,NAME_T.length,...BASE_NAMES.map(x=>x.slice()));
+  const c=ld('remote',null);
+  if(cfg.remote&&c){try{mergeRemote(c)}catch(e){}}
+  ld('mystyles',[]).forEach(s=>{if(s&&okId(s.id)&&Array.isArray(s.items)){const its=s.items.filter(x=>typeof x==='string'&&x.indexOf('[[t]]')>=0&&x.length<=200).slice(0,30);if(its.length)STYLES.push({id:s.id,icon:'✏️',name:cl(s.name,24)||s.id,items:its})}});
+  buildCats();
+  if(!CATS.some(x=>x.id===cat))cat='all';
+}
+function refreshRemote(force){
+  if(!cfg.remote&&!force)return;
+  if(!force&&Date.now()-rstat.ts<6*3600*1000)return;
+  rManual=!!force;
+  if(window.Android&&Android.fetchRemote)Android.fetchRemote();
+  else fetch(REMOTE_URL,{cache:'no-store'}).then(r=>r.text()).then(window.onRemote).catch(()=>window.onRemote(''));
+}
+window.onRemote=function(txt){
+  const man=rManual;rManual=false;
+  if(!txt){if(man)toast('تعذر التحديث، تأكد من الإنترنت');return}
+  try{
+    const j=JSON.parse(txt);
+    if(!j||typeof j!=='object'||Array.isArray(j))throw 0;
+    let same=false;try{same=localStorage.getItem('remote')===JSON.stringify(j)}catch(e){}
+    rstat={ts:Date.now()};sv('rstat',rstat);
+    if(!same){sv('remote',j);rebuildAll()}
+    if(!same||man||tab==='set')render();
+    if(man)toast('تم تحديث الستايلات ✓');
+  }catch(e){if(man)toast('ملف التحديث غير صالح')}
+};
+function manualRemote(){refreshRemote(true)}
+// ---- app self-update: reads latest.json from the newest GitHub release ----
+let upd=null,updManual=false,updReady=false;
+function updCheck(manual){
+  if(!(window.Android&&Android.updateCheck)){if(manual)toast('متاح داخل التطبيق فقط');return}
+  if(!manual&&Date.now()-ld('updLast',0)<864e5)return;
+  updManual=manual;Android.updateCheck();
+}
+window.onUpdate=function(txt){
+  let j=null;try{j=JSON.parse(txt)}catch(e){}
+  if(!j||!j.versionCode){if(updManual)toast('تعذر فحص التحديث، اتأكد من الإنترنت');return}
+  sv('updLast',Date.now());
+  const cur=window.Android&&Android.appVersion?Android.appVersion():0;
+  if(j.versionCode>cur){upd=j;updReady=false;updDialog()}
+  else if(updManual)toast('أنت على أحدث نسخة ✓');
+};
+function updDialog(){
+  const old=document.getElementById('updDlg');if(old)old.remove();
+  const d=document.createElement('div');d.id='updDlg';
+  d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000a;display:flex;align-items:center;justify-content:center;padding:20px';
+  d.innerHTML='<div dir="rtl" style="width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;color:var(--txt)">'
+   +'<div style="font-size:18px;font-weight:700;margin-bottom:6px">فيه تحديث جديد 🎉</div>'
+   +'<div id="updVer" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>'
+   +'<div id="updNotes" style="font-size:13px;line-height:1.7;white-space:pre-line;max-height:160px;overflow:auto;margin-bottom:14px;-webkit-user-select:text;user-select:text"></div>'
+   +'<div id="updBar" style="display:none;height:8px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:12px"><div id="updFill" style="height:100%;width:0;background:linear-gradient(90deg,var(--a1),var(--a2))"></div></div>'
+   +'<div style="display:flex;gap:10px"><button id="updGo" onclick="updGo()" style="flex:1;height:44px;border:0;border-radius:14px;color:#fff;font-size:15px;background:linear-gradient(90deg,var(--a1),var(--a2))">حدّث</button>'
+   +'<button id="updLater" onclick="updLater()" style="flex:0 0 90px;height:44px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--txt);font-size:14px">بعدين</button></div></div>';
+  document.body.appendChild(d);
+  document.getElementById('updVer').textContent='النسخة '+(upd.versionName||upd.versionCode);
+  document.getElementById('updNotes').textContent=upd.notes||'تحسينات وإصلاحات';
+}
+function updGo(){
+  if(!upd)return;
+  if(updReady){Android.updateInstall();return}
+  document.getElementById('updBar').style.display='block';
+  document.getElementById('updGo').textContent='بيتحمل… 0%';
+  Android.updateDownload(upd.url);
+}
+function updLater(){const d=document.getElementById('updDlg');if(d)d.remove()}
+window.onUpdProg=function(p){
+  const g=document.getElementById('updGo'),f=document.getElementById('updFill');if(!g)return;
+  if(p>=0&&p<=100){f.style.width=p+'%';g.textContent='بيتحمل… '+p+'%'}
+  else if(p===101){updLater()}
+  else if(p===-4){updReady=true;g.textContent='تثبيت';toast('اسمح بالتثبيت من الشاشة اللي فتحت، وارجع اضغط تثبيت')}
+  else if(p===-2){g.textContent='حدّث';document.getElementById('updBar').style.display='none';toast('فشل التحميل من التطبيق، فتحت لك صفحة التحميل')}
+};
+function toggleRemote(){cfg.remote=!cfg.remote;sv('cfg',cfg);rebuildAll();if(cfg.remote)refreshRemote(false);render()}
+function kb(n){if(window.Android&&Android.keyboardSettings){n===1?Android.keyboardSettings():Android.keyboardPicker()}else toast('متاح داخل التطبيق فقط')}
+function toast(m){if(window.Android&&Android.toast)Android.toast(m);else{const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 14px;border-radius:14px;font-size:12px;z-index:9';document.body.appendChild(t);setTimeout(()=>t.remove(),1400)}}
+function render(){
+  const home=tab==='home';
+  $('cats').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''}" data-c="${c.id}">${siHtml(c.id)}${c.name}</div>`).join('');
+  const chSl=$('chips').scrollLeft;$('chips').innerHTML=CHIPS.map(c=>`<div class="chip ${c.c} ${c.id===chip?'on':''}" data-p="${c.id}">${CHIPICON[c.id]}${c.l}</div>`).join('');$('chips').scrollLeft=chSl;
+  const full=tab==='set'||tab==='dev'||tab==='bio';
+  $('top').style.display=full?'none':'block';
+  $('chips').style.display=home?'flex':'none';
+  document.querySelector('.side').style.display=home?'flex':'none';
+  $('main').style.top=full?'8px':(home?'calc(var(--u)*101)':'calc(var(--u)*57)');
+  $('nav').className=home?'home':'';
+  $('cnt').textContent=[...$('q').value].length+' chars';
+  const L=$('list');
+  L._list=null; // stop the home list from appending cards into settings/developer/bio pages
+  if(tab==='set'){L.innerHTML=settingsHtml();return}
+  if(tab==='dev'){L.innerHTML=devHtml();return}
+  if(tab==='bio'){L.innerHTML=bioHtml();bioUpdate();return}
+  renderList();
+}
+const PAGE=40;
+let rt=null;
+function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''}" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
+function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++)s+=cardHtml(L._list[i],i);L.insertAdjacentHTML('beforeend',s);L._n=b}
+function renderList(){
+  const L=$('list');
+  let list=[];
+  if(tab==='home')list=items();
+  else if(tab==='favs')list=favs.map(t=>({cat:'Favorite',text:t}));
+  else if(tab==='hist')list=hist.map(t=>({cat:'History',text:t}));
+  else return;
+  L._list=list;L._n=0;
+  if(!list.length){L.innerHTML='<div class="empty">Nothing here yet</div>';return}
+  L.innerHTML='';appendCards(L);
+}
+let rate=ld('rate',{next:15,done:false});
+function vib(n){if(cfg.vib&&navigator.vibrate)try{navigator.vibrate(n)}catch(e){}}
+function copy(t){
+  if(window.Android)Android.copy(t);else navigator.clipboard&&navigator.clipboard.writeText(t);
+  vib(25);
+  const cn=ld('copies',0)+1;sv('copies',cn);
+  if(!rate.done&&cn>=rate.next)setTimeout(()=>{$('rate').style.display='flex'},600);
+  if(cfg.keep){hist=[t,...hist.filter(h=>h!==t)].slice(0,100);sv('hist',hist)}
+}
+$('q').addEventListener('input',()=>{$('cnt').textContent=[...$('q').value].length+' chars';clearTimeout(rt);rt=setTimeout(renderList,140)});
+$('list').addEventListener('scroll',()=>{const L=$('list');if(L._list&&(L._n||0)<L._list.length&&L.scrollTop+L.clientHeight>=L.scrollHeight-400)appendCards(L)},{passive:true});
+$('clr').onclick=()=>{$('q').value='';render()};
+$('cats').onclick=e=>{const c=e.target.closest('[data-c]');if(c){cat=c.dataset.c;if(CHIPN[chip])chip='all';render();$('list').scrollTop=0}};
+$('more').onclick=()=>{tab='set';syncNav();render()};
+$('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset.p;if(chip==='fonts')cat='fonts';else if(cat==='fonts'||CHIPN[chip])cat='all';render();$('list').scrollTop=0}};
+function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab))}
+$('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dataset.t;syncNav();render();$('list').scrollTop=0};
+let lp=null,lpFired=false;
+$('list').addEventListener('touchstart',e=>{const c=e.target.closest('.card');lpFired=false;if(!c)return;lp=setTimeout(()=>{lpFired=true;const t=$('list')._list[+c.dataset.i].text;favs=favs.includes(t)?favs.filter(x=>x!==t):[t,...favs];sv('favs',favs);const Lx=$('list'),y=Lx.scrollTop,n=Lx._n||0;render();while((Lx._n||0)<n&&Lx._n<Lx._list.length)appendCards(Lx);Lx.scrollTop=y;vib(40)},550)},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(ev=>$('list').addEventListener(ev,()=>clearTimeout(lp),{passive:true}));
+$('list').onclick=e=>{if(lpFired){lpFired=false;return}const k=e.target.closest('[data-k]');if(k){copy($('list')._list[+k.dataset.k].text);return}const c=e.target.closest('.card');if(c&&$('list')._list)openSheet($('list')._list[+c.dataset.i].text)};
+$('rateYes').onclick=()=>{rate.done=true;sv('rate',rate);$('rate').style.display='none';openUrl(SHARE_URL)};
+$('rateLater').onclick=()=>{rate.next=ld('copies',0)+25;sv('rate',rate);$('rate').style.display='none'};
+$('rateNo').onclick=()=>{rate.done=true;sv('rate',rate);$('rate').style.display='none'};
+rebuildAll();applyCfg();render();
+if(!ld('seen',false))showWelcome();
+setTimeout(()=>refreshRemote(false),1200);
+setTimeout(()=>updCheck(false),3500);
+if(!ld('tip184',false)){sv('tip184',true);if(ld('seen',false))setTimeout(()=>toast('جديد: ستايلاتك الخاصة ومولّد البايو ✍️ من الإعدادات'),1500)}
+</script>
+</body>
+</html>
