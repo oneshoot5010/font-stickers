@@ -107,11 +107,12 @@ button.go{border:0;font-family:inherit}
 .cats{perspective:calc(var(--u)*300px);transform-style:preserve-3d}
 .cat{transform-origin:50% 50%;transition:transform .08s linear,opacity .08s linear;will-change:transform}
 .cat.on{box-shadow:0 calc(var(--u)*4) 0 #04051acc,0 0 calc(var(--u)*12) #7a5cf066}
-.peek{display:flex;gap:calc(var(--u)*6);overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--u)*-6) calc(var(--u)*6);padding:0 calc(var(--u)*6)}
+.peek{position:absolute;right:calc(var(--u)*14);top:calc(var(--u)*80);left:calc(var(--u)*118);display:flex;gap:calc(var(--u)*5);justify-content:flex-end;overflow-x:auto;scrollbar-width:none}
 .peek::-webkit-scrollbar{display:none}
 .peek:empty{display:none}
-.pk{flex:0 0 auto;max-width:calc(var(--u)*200);padding:calc(var(--u)*5) calc(var(--u)*10);border-radius:calc(var(--u)*12);background:var(--c1);border:calc(var(--u)*1) solid var(--line);font-size:calc(var(--u)*11);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+.pk{flex:0 0 auto;max-width:calc(var(--u)*110);padding:calc(var(--u)*2) calc(var(--u)*7);border-radius:calc(var(--u)*8);background:var(--c1);border:calc(var(--u)*1) solid var(--line);font-size:calc(var(--u)*9);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
 .pk.rnd{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0}
+.card.hl{outline:calc(var(--u)*2) solid #ffd166;box-shadow:0 0 calc(var(--u)*22) #ffd166aa!important}
 .daily{margin:0 0 calc(var(--u)*6);padding:calc(var(--u)*2) calc(var(--u)*4);font-size:calc(var(--u)*9.5);font-weight:700;color:#e9d5ff}
 .list.swap{animation:swapIn .22s ease-out}
 @keyframes swapIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
@@ -415,7 +416,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.25<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.26<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -669,7 +670,8 @@ function decorate(list){
   pk.innerHTML=h;
   if(!q&&cat==='all'){const idx=Math.floor(Date.now()/86400000)%list.length;$('list').insertAdjacentHTML('afterbegin','<div class="daily">✨ ستايل اليوم</div>'+cardHtml(list[idx],idx))}
 }
-$('peek').addEventListener('click',e=>{const L=$('list')._list||[];if(!L.length)return;if(e.target.closest('[data-rnd]')){copy(L[Math.floor(Math.random()*L.length)].text);return}const r=e.target.closest('[data-r]');if(r)copy(L[+r.dataset.r].text)});
+$('peek').addEventListener('click',e=>{const L=$('list')._list||[];if(!L.length)return;if(e.target.closest('[data-rnd]')){spotRandom(L.length);return}const r=e.target.closest('[data-r]');if(r)copy(L[+r.dataset.r].text)});
+function spotRandom(n){const idx=Math.floor(Math.random()*n);const LS=$('list');let el=LS.querySelector(`.card[data-i="${idx}"]`);while(!el&&(LS._n||0)<LS._list.length){appendCards(LS);el=LS.querySelector(`.card[data-i="${idx}"]`)}if(!el)return;LS.querySelectorAll('.hl').forEach(x=>x.classList.remove('hl'));el.classList.add('hl');el.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>el.classList.remove('hl'),2200)}
 let sx=0,sy=0;
 $('list').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 $('list').addEventListener('touchend',e=>{const c=e.target.closest('.card');const L=$('list')._list;if(!c||!L)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<90||Math.abs(dy)>50)return;const x=L[+c.dataset.i];if(!x)return;if(dx>0){favs=favs.includes(x.text)?favs.filter(t=>t!==x.text):[x.text,...favs];sv('favs',favs);vib(30);const y=$('list').scrollTop;render();$('list').scrollTop=y}else copy(x.text)},{passive:true});
