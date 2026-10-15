@@ -107,6 +107,16 @@ button.go{border:0;font-family:inherit}
 .cats{perspective:calc(var(--u)*300px);transform-style:preserve-3d}
 .cat{transform-origin:50% 50%;transition:transform .08s linear,opacity .08s linear;will-change:transform}
 .cat.on{box-shadow:0 calc(var(--u)*4) 0 #04051acc,0 0 calc(var(--u)*12) #7a5cf066}
+.peek{display:flex;gap:calc(var(--u)*6);overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--u)*-6) calc(var(--u)*6);padding:0 calc(var(--u)*6)}
+.peek::-webkit-scrollbar{display:none}
+.peek:empty{display:none}
+.pk{flex:0 0 auto;max-width:calc(var(--u)*200);padding:calc(var(--u)*5) calc(var(--u)*10);border-radius:calc(var(--u)*12);background:var(--c1);border:calc(var(--u)*1) solid var(--line);font-size:calc(var(--u)*11);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+.pk.rnd{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0}
+.daily{margin:0 0 calc(var(--u)*6);padding:calc(var(--u)*2) calc(var(--u)*4);font-size:calc(var(--u)*9.5);font-weight:700;color:#e9d5ff}
+.list.swap{animation:swapIn .22s ease-out}
+@keyframes swapIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.cat{position:relative}
+.cat.pin::after{content:"";position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*5);width:calc(var(--u)*5);height:calc(var(--u)*5);border-radius:50%;background:#ffd166}
 </style>
 </head>
 <body>
@@ -117,6 +127,7 @@ button.go{border:0;font-family:inherit}
     <button class="clear" id="clr"><svg width="15" height="15" viewBox="0 0 24 24" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
   </div>
   <div class="cnt" id="cnt">0 chars</div>
+  <div class="peek" id="peek"></div>
   <div class="chips" id="chips"></div>
 </div>
 <div class="main" id="main">
@@ -224,7 +235,7 @@ const SI={all:['img','all'],gamer:['svg','crown'],fonts:['img','alphabet'],arabi
 const siHtml=id=>{const s=SI[id]||['img','all'];return s[0]==='img'?`<img src="ic/side_${s[1]}.png">`:SIC[s[1]]};
 let CATS=[];
 const CAT_REN={freefireArray:'FF Style',gameArray:'Gaming Art'};
-function buildCats(){CATS=[{id:'all',name:'All'},{id:'fonts',name:'Letters'},{id:'arabic',name:'عربي'},{id:'names',name:'Nicknames'},{id:'gamer',name:'Gamer'},...STYLES.map(s=>({id:s.id,name:CAT_REN[s.id]||s.name}))]}
+function buildCats(){CATS=[{id:'all',name:'All'},{id:'fonts',name:'Letters'},{id:'arabic',name:'عربي'},{id:'names',name:'Nicknames'},{id:'gamer',name:'Gamer'},...STYLES.map(s=>({id:s.id,name:CAT_REN[s.id]||s.name}))];const P=ld('pins',[]);CATS.forEach(c=>c.pin=P.includes(c.id));CATS.sort((a,b)=>(b.pin?1:0)-(a.pin?1:0))}
 buildCats();
 const BASE_STYLES=JSON.parse(JSON.stringify(STYLES)),BASE_NAMES=NAME_T.map(x=>x.slice());
 const CHIPS=[{id:'all',l:'All',c:'c1'},{id:'deco',l:'Fantasy',c:'c2'},{id:'fonts',l:'Alphabet',c:'c3'},{id:'ff',l:'Free Fire',c:'c4'},{id:'pubg',l:'PUBG',c:'c5'}],CHIPN={ff:'Free Fire',pubg:'PUBG'};
@@ -404,7 +415,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.24<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.25<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -597,7 +608,7 @@ function kb(n){if(window.Android&&Android.keyboardSettings){n===1?Android.keyboa
 function toast(m){if(window.Android&&Android.toast)Android.toast(m);else{const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 14px;border-radius:14px;font-size:12px;z-index:9';document.body.appendChild(t);setTimeout(()=>t.remove(),1400)}}
 function render(){
   const home=tab==='home';
-  $('cats').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''}" data-c="${c.id}">${siHtml(c.id)}${c.name}</div>`).join('');requestAnimationFrame(wheel);
+  $('cats').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''} ${c.pin?'pin':''}" data-c="${c.id}">${siHtml(c.id)}${c.name}</div>`).join('');requestAnimationFrame(wheel);
   const chSl=$('chips').scrollLeft;$('chips').innerHTML=CHIPS.map(c=>`<div class="chip ${c.c} ${c.id===chip?'on':''}" data-p="${c.id}">${CHIPICON[c.id]}${c.l}</div>`).join('');$('chips').scrollLeft=chSl;
   const full=tab==='set'||tab==='dev'||tab==='bio';
   $('top').style.display=full?'none':'block';
@@ -616,7 +627,7 @@ function render(){
 const PAGE=40;
 let rt=null;
 function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ${/bold|fancy|script|fraktur|double/i.test(x.cat)?'ext':''}" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out ${/wide/i.test(x.cat)?'wide':''}">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
-function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++)s+=cardHtml(L._list[i],i);L.insertAdjacentHTML('beforeend',s);L._n=b}
+function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++){const x=L._list[i];if(L._hdr&&x.cat!==L._lc){s+=`<div class="sec">${esc(x.cat)}</div>`;L._lc=x.cat}s+=cardHtml(x,i)}L.insertAdjacentHTML('beforeend',s);L._n=b}
 function renderList(){
   const L=$('list');
   let list=[];
@@ -624,9 +635,9 @@ function renderList(){
   else if(tab==='favs')list=favs.map(t=>({cat:'Favorite',text:t}));
   else if(tab==='hist')list=hist.map(t=>({cat:'History',text:t}));
   else return;
-  L._list=list;L._n=0;
+  L._list=list;L._n=0;L._hdr=tab==='home'&&cat==='all'&&!$('q').value;L._lc=null;
   if(!list.length){L.innerHTML='<div class="empty">Nothing here yet</div>';return}
-  L.innerHTML='';appendCards(L);
+  L.innerHTML='';appendCards(L);decorate(list);
 }
 let rate=ld('rate',{next:15,done:false});
 function vib(n){if(cfg.vib&&navigator.vibrate)try{navigator.vibrate(n)}catch(e){}}
@@ -640,7 +651,7 @@ function copy(t){
 $('q').addEventListener('input',()=>{$('cnt').textContent=[...$('q').value].length+' chars';clearTimeout(rt);rt=setTimeout(renderList,140)});
 $('list').addEventListener('scroll',()=>{const L=$('list');if(L._list&&(L._n||0)<L._list.length&&L.scrollTop+L.clientHeight>=L.scrollHeight-400)appendCards(L)},{passive:true});
 $('clr').onclick=()=>{$('q').value='';render()};
-$('cats').onclick=e=>{const c=e.target.closest('[data-c]');if(c){cat=c.dataset.c;if(CHIPN[chip])chip='all';render();$('list').scrollTop=0}};
+$('cats').onclick=e=>{if(pinFired){pinFired=false;return}const c=e.target.closest('[data-c]');if(c){cat=c.dataset.c;if(CHIPN[chip])chip='all';render();$('list').scrollTop=0;const L=$('list');L.classList.remove('swap');void L.offsetWidth;L.classList.add('swap')}};
 $('more').onclick=()=>{tab='set';syncNav();render()};
 $('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset.p;if(chip==='fonts')cat='fonts';else if(cat==='fonts'||CHIPN[chip])cat='all';render();$('list').scrollTop=0}};
 function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab))}
@@ -648,6 +659,23 @@ $('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dat
 /* 3D carousel for the category rail: items curve away from the centre while scrolling */
 function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect();if(!r.height)return;const mid=r.top+r.height/2;W.querySelectorAll('.cat').forEach(c=>{const b=c.getBoundingClientRect();const d=Math.max(-1,Math.min(1,(b.top+b.height/2-mid)/(r.height/2)));c.style.transform=`rotateX(${(-d*50).toFixed(1)}deg) scale(${(1-Math.abs(d)*0.18).toFixed(3)})`;c.style.opacity=(1-Math.abs(d)*0.3).toFixed(2)})}
 $('cats').addEventListener('scroll',()=>requestAnimationFrame(wheel),{passive:true});
+/* ---- v1.9.25: peek strip, random, style of the day, swipe on cards, pin categories ---- */
+function decorate(list){
+  const pk=$('peek');if(!pk)return;
+  if(tab!=='home'||!list.length){pk.innerHTML='';return}
+  const q=$('q').value;
+  let h='<div class="pk rnd" data-rnd="1">🎲 عشوائي</div>';
+  if(q)h+=list.slice(0,3).map((x,i)=>`<div class="pk" data-r="${i}">${esc(x.text)}</div>`).join('');
+  pk.innerHTML=h;
+  if(!q&&cat==='all'){const idx=Math.floor(Date.now()/86400000)%list.length;$('list').insertAdjacentHTML('afterbegin','<div class="daily">✨ ستايل اليوم</div>'+cardHtml(list[idx],idx))}
+}
+$('peek').addEventListener('click',e=>{const L=$('list')._list||[];if(!L.length)return;if(e.target.closest('[data-rnd]')){copy(L[Math.floor(Math.random()*L.length)].text);return}const r=e.target.closest('[data-r]');if(r)copy(L[+r.dataset.r].text)});
+let sx=0,sy=0;
+$('list').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+$('list').addEventListener('touchend',e=>{const c=e.target.closest('.card');const L=$('list')._list;if(!c||!L)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<90||Math.abs(dy)>50)return;const x=L[+c.dataset.i];if(!x)return;if(dx>0){favs=favs.includes(x.text)?favs.filter(t=>t!==x.text):[x.text,...favs];sv('favs',favs);vib(30);const y=$('list').scrollTop;render();$('list').scrollTop=y}else copy(x.text)},{passive:true});
+let plT=null,pinFired=false;
+$('cats').addEventListener('touchstart',e=>{const c=e.target.closest('[data-c]');if(!c)return;plT=setTimeout(()=>{plT=null;pinFired=true;const id=c.dataset.c;const P=ld('pins',[]);sv('pins',P.includes(id)?P.filter(x=>x!==id):[id,...P]);buildCats();vib(40);render()},600)},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(ev=>$('cats').addEventListener(ev,()=>{clearTimeout(plT);plT=null},{passive:true}));
 /* card tilt under the finger */
 const tiltOff=()=>document.querySelectorAll('.card').forEach(c=>{c.style.removeProperty('--rx');c.style.removeProperty('--ry')});
 $('list').addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='mouse')return;const c=e.target.closest('.card');if(!c)return;const b=c.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.setProperty('--ry',(x*28).toFixed(2)+'deg');c.style.setProperty('--rx',(-y*24).toFixed(2)+'deg')},{passive:true});
