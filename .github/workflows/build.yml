@@ -1,0 +1,70 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Prepare keystore
+        env:
+          KS: ${{ secrets.KS_B64 }}
+        run: |
+          if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$RUNNER_TEMP/ks.jks"; fi
+      - run: gradle assembleDebug --no-daemon
+        env:
+          KS_FILE: ${{ runner.temp }}/ks.jks
+          KS_PASS: ${{ secrets.KS_PASS }}
+      - name: Write latest.json (read by the app to offer updates)
+        run: |
+          python3 - <<'PY'
+          import json, re, os
+          g = open('app/build.gradle', encoding='utf-8').read()
+          vc = int(re.search(r'versionCode\s+(\d+)', g).group(1))
+          vn = re.search(r"versionName\s+'([^']+)'", g).group(1)
+          notes = ''
+          if os.path.exists('update-notes.txt'):
+              notes = open('update-notes.txt', encoding='utf-8').read().strip()
+          run = os.environ['RUN_NUMBER']
+          repo = os.environ['REPO']
+          json.dump({'versionCode': vc, 'versionName': vn, 'notes': notes,
+                     'url': f'https://github.com/{repo}/releases/download/build-{run}/app-debug.apk'},
+                    open('latest.json', 'w', encoding='utf-8'), ensure_ascii=False)
+          PY
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          REPO: ${{ github.repository }}
+      - name: Send instant update notification (FCM)
+        continue-on-error: true
+        env:
+          SA: ${{ secrets.FIREBASE_SA }}
+        run: |
+          [ -z "$SA" ] && { echo 'no FIREBASE_SA secret, skipping'; exit 0; }
+          echo "$SA" > "$RUNNER_TEMP/sa.json"
+          PID=$(python3 -c "import json;print(json.load(open('$RUNNER_TEMP/sa.json'))['project_id'])")
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/sa.json" -q
+          rm -f "$RUNNER_TEMP/sa.json"
+          TOKEN=$(gcloud auth print-access-token)
+          VC=$(python3 -c "import json;print(json.load(open('latest.json'))['versionCode'])")
+          VN=$(python3 -c "import json;print(json.load(open('latest.json'))['versionName'])")
+          curl -sS -X POST "https://fcm.googleapis.com/v1/projects/$PID/messages:send" \
+            -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            -d "{\"message\":{\"topic\":\"updates\",\"data\":{\"versionCode\":\"$VC\",\"versionName\":\"$VN\"},\"android\":{\"priority\":\"high\"}}}"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          files: |
+            app/build/outputs/apk/debug/app-debug.apk
+            latest.json
