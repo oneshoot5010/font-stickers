@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <style>
 :root{--u:calc(100vw/410);--a1:#9a5cf5;--a2:#6a62f2;--a3:#5236d0;--fs:12;
---bg:#080819;--g1:#4a1659;--g2:#2a1058;--g3:#101046;--panel:#0e0f2e;--c1:#171a46;--c2:#12153c;--line:#272b66;--txt:#fff;--muted:#a5a8d0;--meta:#7d92e8;--side1:#0d0f33;--side2:#0a0b27;--sline:#14174a;--sbord:#24286a;--nav:#0d0f2e;--navtxt:#b4b7e6;--chip:#0f1236;--chipl:#1d2260;--badge:#0b0d2c;--btn1:#3b3fb4;--btn2:#2b2f90;--tdiv:#1f2358;--field:#14173f}
+--bg:#080819;--g1:#4a1659;--g2:#2a1058;--g3:#101046;--panel:#0e0f2e;--c1:#171a46;--c2:#12153c;--line:#272b66;--txt:#fff;--muted:#a5a8d0;--meta:#b3c2ff;--side1:#0d0f33;--side2:#0a0b27;--sline:#14174a;--sbord:#24286a;--nav:#0d0f2e;--navtxt:#b4b7e6;--chip:#0f1236;--chipl:#1d2260;--badge:#0b0d2c;--btn1:#3b3fb4;--btn2:#2b2f90;--tdiv:#1f2358;--field:#14173f}
 :root[data-theme=light]{--bg:#f1f0fb;--g1:#e6d4fa;--g2:#d6dcff;--g3:#e3e6ff;--panel:#ffffff;--c1:#ffffff;--c2:#f7f6ff;--line:#d9d6f5;--txt:#1a1a3a;--muted:#6b6b92;--meta:#5560c8;--side1:#ffffff;--side2:#f7f6ff;--sline:#ebe9fb;--sbord:#d9d6f5;--nav:#ffffff;--navtxt:#6b6b92;--chip:#ffffff;--chipl:#d9d6f5;--btn1:#5b60e0;--btn2:#4448c4;--tdiv:#e6e3fa;--field:#ffffff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;-webkit-user-select:none;user-select:none}
 html,body{height:100%;overflow:hidden;color:var(--txt);font-family:system-ui,Roboto,sans-serif;background:var(--bg)}
@@ -24,10 +24,10 @@ input{-webkit-user-select:text;user-select:text}
 .chip img{height:calc(var(--u)*19);border-radius:calc(var(--u)*6);background:var(--badge)}
 .c1{min-width:calc(var(--u)*92)}.c2{min-width:calc(var(--u)*118)}.c3{min-width:calc(var(--u)*112)}.chip .em{font-size:calc(var(--u)*15);line-height:1}
 .main{position:absolute;left:0;right:0;top:calc(var(--u)*101);bottom:0;padding:0 calc(var(--u)*10) 0 calc(var(--u)*9);display:flex;gap:calc(var(--u)*12)}
-.side{width:calc(var(--u)*75);flex:0 0 calc(var(--u)*75);border-radius:calc(var(--u)*11);border:calc(var(--u)*1) solid var(--sbord);background:linear-gradient(180deg,var(--side1),var(--side2));display:flex;flex-direction:column;margin-bottom:calc(var(--u)*8);overflow:hidden}
+.side{width:calc(var(--u)*84);flex:0 0 calc(var(--u)*84);border-radius:calc(var(--u)*11);border:calc(var(--u)*1) solid var(--sbord);background:linear-gradient(180deg,var(--side1),var(--side2));display:flex;flex-direction:column;margin-bottom:calc(var(--u)*8);overflow:hidden}
 .cats{flex:1;overflow-y:auto;scrollbar-width:none;padding:calc(var(--u)*2) calc(var(--u)*1)}
 .cats::-webkit-scrollbar{display:none}
-.cat{height:calc(var(--u)*46);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:var(--txt);border-radius:calc(var(--u)*10);gap:calc(var(--u)*1);border-bottom:calc(var(--u)*1) solid var(--sline)}
+.cat{height:calc(var(--u)*46);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--u)*8);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt);border-radius:calc(var(--u)*10);gap:calc(var(--u)*1);border-bottom:calc(var(--u)*1) solid var(--sline)}
 .cat img,.cat svg{width:calc(var(--u)*23);height:calc(var(--u)*23);object-fit:contain;border-radius:calc(var(--u)*7);background:var(--badge);padding:calc(var(--u)*1)}
 .cat.on{background:linear-gradient(180deg,var(--a1),var(--a3));box-shadow:0 0 calc(var(--u)*8) #7a5cf055;border-color:transparent;color:#fff;height:calc(var(--u)*40);margin-bottom:calc(var(--u)*2)}
 .cat.more{flex:0 0 calc(var(--u)*40);border:0;border-top:calc(var(--u)*1) solid var(--sline);border-radius:0}
@@ -101,6 +101,7 @@ button.go{border:0;font-family:inherit}
 .cat.on svg{animation:bob 1.6s ease-in-out infinite}
 .btn{box-shadow:0 calc(var(--u)*6) 0 #1a1d5c,0 calc(var(--u)*12) calc(var(--u)*14) #000a,inset 0 calc(var(--u)*2) 0 #ffffff66;transition:transform .08s,box-shadow .08s}
 .btn:active{transform:translateY(calc(var(--u)*5));box-shadow:0 calc(var(--u)*1) 0 #1a1d5c,inset 0 calc(var(--u)*3) calc(var(--u)*5) #00000080}
+.out.wide{white-space:nowrap;font-size:calc(var(--u)*8);letter-spacing:0}
 .card.ext .out{text-shadow:0 1px 0 #d8b4fe,0 2px 0 #a78bfa,0 3px 0 #7c3aed,0 4px 0 #4c1d95,0 8px 10px #000a}
 :root[data-theme=light] .card.ext .out{text-shadow:0 1px 0 #c4b5fd,0 2px 0 #a78bfa,0 3px 0 #7c3aed,0 4px 6px #5b21b655}
 .cats{perspective:calc(var(--u)*300px);transform-style:preserve-3d}
@@ -124,10 +125,10 @@ button.go{border:0;font-family:inherit}
   <div class="list" id="list"></div>
 </div>
 <nav id="nav" class="home">
-  <div data-t="home" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>Home</div>
-  <div data-t="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 17l-5.6 3 1.3-6.2L3 9.5l6.3-.7z"/></svg>Favorites</div>
-  <div data-t="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h8"/></svg>History</div>
-  <div data-t="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>اعدادات</div>
+  <div data-t="home" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>الرئيسية</div>
+  <div data-t="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 17l-5.6 3 1.3-6.2L3 9.5l6.3-.7z"/></svg>المفضلة</div>
+  <div data-t="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h8"/></svg>السجل</div>
+  <div data-t="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>الإعدادات</div>
   <div data-t="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>Developer</div>
 </nav>
 <div id="welcome" style="display:none"></div>
@@ -222,7 +223,7 @@ SIC.crown=svg('<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="url(#gc)"/>',
 const SI={all:['img','all'],gamer:['svg','crown'],fonts:['img','alphabet'],arabic:['svg','ar'],names:['svg','tag'],freefireArray:['svg','fire'],emoticonArray:['svg','smile'],gameArray:['img','crazy'],attitudeArray:['img','attitude'],angryArray:['svg','bolt'],heartArray:['img','cute2'],cuteArray:['img','cute'],boyArray:['img','small'],girlArray:['img','fantasy'],gymArray:['svg','gym'],sadArray:['svg','sad'],bricksArray:['svg','brick'],hindiArray:['svg','om'],gunArray:['svg','gun']};
 const siHtml=id=>{const s=SI[id]||['img','all'];return s[0]==='img'?`<img src="ic/side_${s[1]}.png">`:SIC[s[1]]};
 let CATS=[];
-const CAT_REN={freefireArray:'FF Style'};
+const CAT_REN={freefireArray:'FF Style',gameArray:'Gaming Art'};
 function buildCats(){CATS=[{id:'all',name:'All'},{id:'fonts',name:'Letters'},{id:'arabic',name:'عربي'},{id:'names',name:'Nicknames'},{id:'gamer',name:'Gamer'},...STYLES.map(s=>({id:s.id,name:CAT_REN[s.id]||s.name}))]}
 buildCats();
 const BASE_STYLES=JSON.parse(JSON.stringify(STYLES)),BASE_NAMES=NAME_T.map(x=>x.slice());
@@ -403,7 +404,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.21<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.23<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -614,7 +615,7 @@ function render(){
 }
 const PAGE=40;
 let rt=null;
-function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ext" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
+function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ext" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out ${/wide/i.test(x.cat)?'wide':''}">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
 function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++)s+=cardHtml(L._list[i],i);L.insertAdjacentHTML('beforeend',s);L._n=b}
 function renderList(){
   const L=$('list');
@@ -652,7 +653,13 @@ const tiltOff=()=>document.querySelectorAll('.card').forEach(c=>{c.style.removeP
 $('list').addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='mouse')return;const c=e.target.closest('.card');if(!c)return;const b=c.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.setProperty('--ry',(x*28).toFixed(2)+'deg');c.style.setProperty('--rx',(-y*24).toFixed(2)+'deg')},{passive:true});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>$('list').addEventListener(ev,tiltOff,{passive:true}));
 /* gyroscope: tilting the phone moves the cards */
-let gx=0,gy=0,gp=false;window.addEventListener('deviceorientation',e=>{if(e.gamma==null||gp)return;gp=true;requestAnimationFrame(()=>{gp=false;const tx=Math.max(-22,Math.min(22,e.gamma)),ty=Math.max(-22,Math.min(22,e.beta-45));gx+=(tx-gx)*0.35;gy+=(ty-gy)*0.35;const R=document.documentElement.style;R.setProperty('--gx',gx.toFixed(2)+'deg');R.setProperty('--gy',gy.toFixed(2)+'deg')})},{passive:true});
+let gx=0,gy=0,gp=false;
+const onOrient=e=>{if(e.gamma==null||gp)return;gp=true;requestAnimationFrame(()=>{gp=false;const tx=Math.max(-22,Math.min(22,e.gamma)),ty=Math.max(-22,Math.min(22,e.beta-45));gx+=(tx-gx)*0.35;gy+=(ty-gy)*0.35;const R=document.documentElement.style;R.setProperty('--gx',gx.toFixed(2)+'deg');R.setProperty('--gy',gy.toFixed(2)+'deg')})};
+/* iPhone (iOS) needs permission for motion, asked once on the first tap; Android just listens */
+if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+  const askMotion=()=>{document.removeEventListener('click',askMotion);DeviceOrientationEvent.requestPermission().then(s=>{if(s==='granted')window.addEventListener('deviceorientation',onOrient,{passive:true})}).catch(()=>{})};
+  document.addEventListener('click',askMotion);
+}else window.addEventListener('deviceorientation',onOrient,{passive:true});
 let lp=null,lpFired=false;
 $('list').addEventListener('touchstart',e=>{const c=e.target.closest('.card');lpFired=false;if(!c)return;lp=setTimeout(()=>{lpFired=true;const t=$('list')._list[+c.dataset.i].text;favs=favs.includes(t)?favs.filter(x=>x!==t):[t,...favs];sv('favs',favs);const Lx=$('list'),y=Lx.scrollTop,n=Lx._n||0;render();while((Lx._n||0)<n&&Lx._n<Lx._list.length)appendCards(Lx);Lx.scrollTop=y;vib(40)},550)},{passive:true});
 ['touchend','touchmove','touchcancel'].forEach(ev=>$('list').addEventListener(ev,()=>clearTimeout(lp),{passive:true}));
