@@ -95,7 +95,7 @@ button.go{border:0;font-family:inherit}
 .two .act{flex:1;width:auto}
 /* ---- 3D polish v1.9.19 ---- */
 .list{perspective:calc(var(--u)*600px);perspective-origin:50% 40%}
-.card{transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .2s ease-out;will-change:transform;transform:perspective(600px) rotateX(calc(9deg + var(--gy,0deg) + var(--rx,0deg))) rotateY(calc(-6deg + var(--gx,0deg) + var(--ry,0deg)));box-shadow:0 calc(var(--u)*8) 0 #04051acc,0 calc(var(--u)*16) calc(var(--u)*22) #000a,inset 0 calc(var(--u)*1.5) 0 #ffffff26}
+.card{transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .2s ease-out;will-change:transform;transform:perspective(600px) rotateX(calc(4deg + var(--gy,0deg) + var(--rx,0deg))) rotateY(calc(-6deg + var(--gx,0deg) + var(--ry,0deg)));box-shadow:0 calc(var(--u)*8) 0 #04051acc,0 calc(var(--u)*16) calc(var(--u)*22) #000a,inset 0 calc(var(--u)*1.5) 0 #ffffff26}
 .card>img,.cat img,.cat svg{box-shadow:0 calc(var(--u)*4) 0 #04051acc,0 calc(var(--u)*9) calc(var(--u)*12) #000a,inset 0 calc(var(--u)*2) 0 #ffffff66;transform:translateZ(calc(var(--u)*8))}
 @keyframes bob{0%,100%{transform:translateY(0) translateZ(calc(var(--u)*8))}50%{transform:translateY(calc(var(--u)*-10)) translateZ(calc(var(--u)*8))}}
 .cat.on svg{animation:bob 1.6s ease-in-out infinite}
@@ -404,7 +404,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.23<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.24<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -615,7 +615,7 @@ function render(){
 }
 const PAGE=40;
 let rt=null;
-function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ext" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out ${/wide/i.test(x.cat)?'wide':''}">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
+function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ${/bold|fancy|script|fraktur|double/i.test(x.cat)?'ext':''}" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out ${/wide/i.test(x.cat)?'wide':''}">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
 function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++)s+=cardHtml(L._list[i],i);L.insertAdjacentHTML('beforeend',s);L._n=b}
 function renderList(){
   const L=$('list');
@@ -646,7 +646,7 @@ $('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset
 function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab))}
 $('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dataset.t;syncNav();render();$('list').scrollTop=0};
 /* 3D carousel for the category rail: items curve away from the centre while scrolling */
-function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect();if(!r.height)return;const mid=r.top+r.height/2;W.querySelectorAll('.cat').forEach(c=>{const b=c.getBoundingClientRect();const d=Math.max(-1,Math.min(1,(b.top+b.height/2-mid)/(r.height/2)));c.style.transform=`rotateX(${(-d*50).toFixed(1)}deg) scale(${(1-Math.abs(d)*0.18).toFixed(3)})`;c.style.opacity=(1-Math.abs(d)*0.55).toFixed(2)})}
+function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect();if(!r.height)return;const mid=r.top+r.height/2;W.querySelectorAll('.cat').forEach(c=>{const b=c.getBoundingClientRect();const d=Math.max(-1,Math.min(1,(b.top+b.height/2-mid)/(r.height/2)));c.style.transform=`rotateX(${(-d*50).toFixed(1)}deg) scale(${(1-Math.abs(d)*0.18).toFixed(3)})`;c.style.opacity=(1-Math.abs(d)*0.3).toFixed(2)})}
 $('cats').addEventListener('scroll',()=>requestAnimationFrame(wheel),{passive:true});
 /* card tilt under the finger */
 const tiltOff=()=>document.querySelectorAll('.card').forEach(c=>{c.style.removeProperty('--rx');c.style.removeProperty('--ry')});
