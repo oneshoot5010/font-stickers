@@ -423,7 +423,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.28<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.29<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -530,8 +530,8 @@ function drawCard(c,t,o){
     g.globalAlpha=.7;g.fillStyle=col;g.font='34px '+CFONT;g.fillText(sg||'استيكر فونت',W/2,fy);
     if(o.link){g.font='26px '+CFONT;g.fillText('oneshoot5010.github.io/font-stickers',W/2,fy+48)}
     g.globalAlpha=1;
-    if(o.link)drawQR(g,W,H,story);
   }
+  if(o.link)drawQR(g,W,H,story);
 }
 function drawQR(g,W,H,story){
   if(typeof qrcode!=='function')return;

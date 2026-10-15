@@ -16,6 +16,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -37,6 +39,8 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     static final String REMOTE_URL = "https://raw.githubusercontent.com/oneshoot5010/font-stickers/main/styles.json";
+    static final int REQ_FILE = 7101;
+    ValueCallback<Uri[]> fileCb;
     WebView web;
 
     @Override
@@ -50,8 +54,33 @@ public class MainActivity extends Activity {
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        // lets <input type="file"> (gallery picker for the background photo) open
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                if (fileCb != null) fileCb.onReceiveValue(null);
+                fileCb = cb;
+                try {
+                    startActivityForResult(p.createIntent(), REQ_FILE);
+                } catch (Exception e) {
+                    fileCb.onReceiveValue(null);
+                    fileCb = null;
+                    return false;
+                }
+                return true;
+            }
+        });
         web.addJavascriptInterface(new Bridge(), "Android");
         web.loadUrl("file:///android_asset/index.html");
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == REQ_FILE && fileCb != null) {
+            fileCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+            fileCb = null;
+        }
     }
 
     @Override
