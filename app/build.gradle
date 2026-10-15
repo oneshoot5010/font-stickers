@@ -1,0 +1,54 @@
+plugins { id 'com.android.application' }
+// instant update notifications need Firebase; the plugin is applied only when the file is present
+if (file('google-services.json').exists()) apply plugin: 'com.google.gms.google-services'
+def ksPath = System.getenv('KS_FILE')
+def ksPass = System.getenv('KS_PASS')
+def hasKs = ksPath && ksPass && file(ksPath).exists() && file(ksPath).length() > 0
+android {
+    namespace 'com.fontcopy.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.fontcopy.app'
+        minSdk 21
+        targetSdk 34
+        versionCode 38
+        versionName '1.9.18'
+    }
+    signingConfigs {
+        main {
+            if (hasKs) {
+                storeFile file(ksPath)
+                storePassword ksPass
+                keyAlias 'fontapp'
+                keyPassword ksPass
+            }
+        }
+    }
+    buildTypes {
+        debug { if (hasKs) signingConfig signingConfigs.main }
+        release {
+            minifyEnabled false
+            if (hasKs) signingConfig signingConfigs.main
+        }
+    }
+    lint { checkReleaseBuilds false }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        encoding 'UTF-8'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+    implementation 'com.alphacephei:vosk-android:0.3.47@aar'
+    implementation 'net.java.dev.jna:jna:5.13.0@aar'
+}
+
+// Firebase brings kotlin-stdlib 1.8.x, which already contains the jdk7/jdk8 classes.
+// Drop the old separate jdk7/jdk8 artifacts so the build doesn't see duplicate classes.
+configurations.all {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
