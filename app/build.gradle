@@ -11,8 +11,8 @@ android {
         applicationId 'com.fontcopy.app'
         minSdk 21
         targetSdk 34
-        versionCode 38
-        versionName '1.9.18'
+        versionCode 39
+        versionName '1.9.19'
     }
     signingConfigs {
         main {

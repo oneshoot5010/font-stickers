@@ -93,6 +93,18 @@ button.go{border:0;font-family:inherit}
 .pri{background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:0}
 .two{display:flex;gap:calc(var(--u)*6)}
 .two .act{flex:1;width:auto}
+/* ---- 3D polish v1.9.19 ---- */
+.list{perspective:calc(var(--u)*600px);perspective-origin:50% 40%}
+.card{transform-style:preserve-3d;transition:transform .2s ease-out,box-shadow .2s ease-out;will-change:transform;box-shadow:0 calc(var(--u)*6) 0 #04051acc,0 calc(var(--u)*12) calc(var(--u)*18) #0007,inset 0 calc(var(--u)*1) 0 #ffffff1f}
+.card.tilt{transition:transform .06s linear;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(1.015);box-shadow:0 calc(var(--u)*10) 0 #04051acc,0 calc(var(--u)*22) calc(var(--u)*26) #0009,inset 0 calc(var(--u)*1) 0 #ffffff26}
+.card>img,.cat img,.cat svg{box-shadow:0 calc(var(--u)*3) 0 #04051acc,0 calc(var(--u)*6) calc(var(--u)*10) #0009,inset 0 calc(var(--u)*1.5) 0 #ffffff59;transform:translateZ(calc(var(--u)*6))}
+.btn{box-shadow:0 calc(var(--u)*4) 0 #1a1d5c,0 calc(var(--u)*8) calc(var(--u)*12) #0007,inset 0 calc(var(--u)*1.5) 0 #ffffff4d;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(calc(var(--u)*3));box-shadow:0 calc(var(--u)*1) 0 #1a1d5c,inset 0 calc(var(--u)*2) calc(var(--u)*4) #00000066}
+.card.ext .out{text-shadow:0 1px 0 #d8b4fe,0 2px 0 #a78bfa,0 3px 0 #7c3aed,0 4px 0 #4c1d95,0 8px 10px #000a}
+:root[data-theme=light] .card.ext .out{text-shadow:0 1px 0 #c4b5fd,0 2px 0 #a78bfa,0 3px 0 #7c3aed,0 4px 6px #5b21b655}
+.cats{perspective:calc(var(--u)*300px);transform-style:preserve-3d}
+.cat{transform-origin:50% 50%;transition:transform .08s linear,opacity .08s linear;will-change:transform}
+.cat.on{box-shadow:0 calc(var(--u)*4) 0 #04051acc,0 0 calc(var(--u)*12) #7a5cf066}
 </style>
 </head>
 <body>
@@ -390,7 +402,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.17<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.19<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -583,7 +595,7 @@ function kb(n){if(window.Android&&Android.keyboardSettings){n===1?Android.keyboa
 function toast(m){if(window.Android&&Android.toast)Android.toast(m);else{const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 14px;border-radius:14px;font-size:12px;z-index:9';document.body.appendChild(t);setTimeout(()=>t.remove(),1400)}}
 function render(){
   const home=tab==='home';
-  $('cats').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''}" data-c="${c.id}">${siHtml(c.id)}${c.name}</div>`).join('');
+  $('cats').innerHTML=CATS.map(c=>`<div class="cat ${c.id===cat?'on':''}" data-c="${c.id}">${siHtml(c.id)}${c.name}</div>`).join('');requestAnimationFrame(wheel);
   const chSl=$('chips').scrollLeft;$('chips').innerHTML=CHIPS.map(c=>`<div class="chip ${c.c} ${c.id===chip?'on':''}" data-p="${c.id}">${CHIPICON[c.id]}${c.l}</div>`).join('');$('chips').scrollLeft=chSl;
   const full=tab==='set'||tab==='dev'||tab==='bio';
   $('top').style.display=full?'none':'block';
@@ -601,7 +613,7 @@ function render(){
 }
 const PAGE=40;
 let rt=null;
-function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''}" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
+function cardHtml(x,i){return `<div class="card ${favs.includes(x.text)?'fav':''} ${/bold|fancy|script|fraktur|double/i.test(x.cat)?'ext':''}" data-i="${i}"><img src="ic/card${i%15}.png" decoding="async"><div class="txt"><div class="out">${esc(x.text)}</div><div class="meta">${x.cat} · ${[...x.text].length} chars</div></div><button class="btn" data-k="${i}">${COPYSVG}</button></div>`}
 function appendCards(L){const a=L._n||0,b=Math.min(a+PAGE,L._list.length);if(a>=b)return;let s='';for(let i=a;i<b;i++)s+=cardHtml(L._list[i],i);L.insertAdjacentHTML('beforeend',s);L._n=b}
 function renderList(){
   const L=$('list');
@@ -631,6 +643,13 @@ $('more').onclick=()=>{tab='set';syncNav();render()};
 $('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset.p;if(chip==='fonts')cat='fonts';else if(cat==='fonts'||CHIPN[chip])cat='all';render();$('list').scrollTop=0}};
 function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab))}
 $('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dataset.t;syncNav();render();$('list').scrollTop=0};
+/* 3D carousel for the category rail: items curve away from the centre while scrolling */
+function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect();if(!r.height)return;const mid=r.top+r.height/2;W.querySelectorAll('.cat').forEach(c=>{const b=c.getBoundingClientRect();const d=Math.max(-1,Math.min(1,(b.top+b.height/2-mid)/(r.height/2)));c.style.transform=`rotateX(${(-d*32).toFixed(1)}deg) scale(${(1-Math.abs(d)*0.12).toFixed(3)})`;c.style.opacity=(1-Math.abs(d)*0.4).toFixed(2)})}
+$('cats').addEventListener('scroll',()=>requestAnimationFrame(wheel),{passive:true});
+/* card tilt under the finger */
+const tiltOff=()=>document.querySelectorAll('.card.tilt').forEach(c=>c.classList.remove('tilt'));
+$('list').addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='mouse')return;const c=e.target.closest('.card');if(!c)return;const b=c.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.setProperty('--ry',(x*16).toFixed(2)+'deg');c.style.setProperty('--rx',(-y*14).toFixed(2)+'deg');if(!c.classList.contains('tilt')){tiltOff();c.classList.add('tilt')}},{passive:true});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>$('list').addEventListener(ev,tiltOff,{passive:true}));
 let lp=null,lpFired=false;
 $('list').addEventListener('touchstart',e=>{const c=e.target.closest('.card');lpFired=false;if(!c)return;lp=setTimeout(()=>{lpFired=true;const t=$('list')._list[+c.dataset.i].text;favs=favs.includes(t)?favs.filter(x=>x!==t):[t,...favs];sv('favs',favs);const Lx=$('list'),y=Lx.scrollTop,n=Lx._n||0;render();while((Lx._n||0)<n&&Lx._n<Lx._list.length)appendCards(Lx);Lx.scrollTop=y;vib(40)},550)},{passive:true});
 ['touchend','touchmove','touchcancel'].forEach(ev=>$('list').addEventListener(ev,()=>clearTimeout(lp),{passive:true}));
