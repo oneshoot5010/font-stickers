@@ -1,0 +1,18 @@
+{
+  "name": "استيكر فونت",
+  "short_name": "استيكر فونت",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080819",
+  "theme_color": "#9a5cf5",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
