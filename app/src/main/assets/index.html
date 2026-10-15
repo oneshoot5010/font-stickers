@@ -97,8 +97,8 @@ button.go{border:0;font-family:inherit}
 .list{perspective:calc(var(--u)*600px);perspective-origin:50% 40%}
 .card{transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .2s ease-out;will-change:transform;transform:perspective(600px) rotateX(calc(9deg + var(--gy,0deg) + var(--rx,0deg))) rotateY(calc(-6deg + var(--gx,0deg) + var(--ry,0deg)));box-shadow:0 calc(var(--u)*8) 0 #04051acc,0 calc(var(--u)*16) calc(var(--u)*22) #000a,inset 0 calc(var(--u)*1.5) 0 #ffffff26}
 .card>img,.cat img,.cat svg{box-shadow:0 calc(var(--u)*4) 0 #04051acc,0 calc(var(--u)*9) calc(var(--u)*12) #000a,inset 0 calc(var(--u)*2) 0 #ffffff66;transform:translateZ(calc(var(--u)*8))}
-@keyframes bob{0%,100%{transform:translateY(0) translateZ(calc(var(--u)*8))}50%{transform:translateY(calc(var(--u)*-4)) translateZ(calc(var(--u)*8))}}
-.cat.on svg{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) translateZ(calc(var(--u)*8))}50%{transform:translateY(calc(var(--u)*-10)) translateZ(calc(var(--u)*8))}}
+.cat.on svg{animation:bob 1.6s ease-in-out infinite}
 .btn{box-shadow:0 calc(var(--u)*6) 0 #1a1d5c,0 calc(var(--u)*12) calc(var(--u)*14) #000a,inset 0 calc(var(--u)*2) 0 #ffffff66;transition:transform .08s,box-shadow .08s}
 .btn:active{transform:translateY(calc(var(--u)*5));box-shadow:0 calc(var(--u)*1) 0 #1a1d5c,inset 0 calc(var(--u)*3) calc(var(--u)*5) #00000080}
 .card.ext .out{text-shadow:0 1px 0 #d8b4fe,0 2px 0 #a78bfa,0 3px 0 #7c3aed,0 4px 0 #4c1d95,0 8px 10px #000a}
@@ -403,7 +403,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.20<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.21<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -649,10 +649,10 @@ function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect(
 $('cats').addEventListener('scroll',()=>requestAnimationFrame(wheel),{passive:true});
 /* card tilt under the finger */
 const tiltOff=()=>document.querySelectorAll('.card').forEach(c=>{c.style.removeProperty('--rx');c.style.removeProperty('--ry')});
-$('list').addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='mouse')return;const c=e.target.closest('.card');if(!c)return;const b=c.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.setProperty('--ry',(x*18).toFixed(2)+'deg');c.style.setProperty('--rx',(-y*16).toFixed(2)+'deg')},{passive:true});
+$('list').addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&e.pointerType!=='mouse')return;const c=e.target.closest('.card');if(!c)return;const b=c.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;c.style.setProperty('--ry',(x*28).toFixed(2)+'deg');c.style.setProperty('--rx',(-y*24).toFixed(2)+'deg')},{passive:true});
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>$('list').addEventListener(ev,tiltOff,{passive:true}));
 /* gyroscope: tilting the phone moves the cards */
-let gx=0,gy=0,gp=false;window.addEventListener('deviceorientation',e=>{if(e.gamma==null||gp)return;gp=true;requestAnimationFrame(()=>{gp=false;const tx=Math.max(-12,Math.min(12,e.gamma))*0.6,ty=Math.max(-12,Math.min(12,e.beta-45))*0.6;gx+=(tx-gx)*0.25;gy+=(ty-gy)*0.25;const R=document.documentElement.style;R.setProperty('--gx',gx.toFixed(2)+'deg');R.setProperty('--gy',gy.toFixed(2)+'deg')})},{passive:true});
+let gx=0,gy=0,gp=false;window.addEventListener('deviceorientation',e=>{if(e.gamma==null||gp)return;gp=true;requestAnimationFrame(()=>{gp=false;const tx=Math.max(-22,Math.min(22,e.gamma)),ty=Math.max(-22,Math.min(22,e.beta-45));gx+=(tx-gx)*0.35;gy+=(ty-gy)*0.35;const R=document.documentElement.style;R.setProperty('--gx',gx.toFixed(2)+'deg');R.setProperty('--gy',gy.toFixed(2)+'deg')})},{passive:true});
 let lp=null,lpFired=false;
 $('list').addEventListener('touchstart',e=>{const c=e.target.closest('.card');lpFired=false;if(!c)return;lp=setTimeout(()=>{lpFired=true;const t=$('list')._list[+c.dataset.i].text;favs=favs.includes(t)?favs.filter(x=>x!==t):[t,...favs];sv('favs',favs);const Lx=$('list'),y=Lx.scrollTop,n=Lx._n||0;render();while((Lx._n||0)<n&&Lx._n<Lx._list.length)appendCards(Lx);Lx.scrollTop=y;vib(40)},550)},{passive:true});
 ['touchend','touchmove','touchcancel'].forEach(ev=>$('list').addEventListener(ev,()=>clearTimeout(lp),{passive:true}));
