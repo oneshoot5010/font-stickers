@@ -7,7 +7,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.inputmethodservice.InputMethodService;
 import android.os.Handler;
 import android.os.Looper;
@@ -63,6 +66,8 @@ public class FontKeyboardService extends InputMethodService {
     // BG, KEY, SPECIAL, ACCENT, CHIP, TXT, TXT2
     // user-picked colors (index 0 = keep theme default); stored in the "kb" prefs as iconC / smallC
     static final int[] PALETTE = {0, 0xFFFFFFFF, 0xFFFFD36A, 0xFF2ECC71, 0xFF3D9BFF, 0xFFFF5CA8, 0xFFFF7A3D};
+    // key shapes: the index is what the "kb" prefs keep as "shape" (same order as SHAPES in index.html)
+    static final String[] SHAPE_NAMES = {"كلاسيك", "حبوب", "زجاجي", "متدرّج", "iOS", "نيون", "3D"};
     // symbol pages (no emoji), 4 rows of 10 each
     static final String[][] DECOR = {
             {"ツ☠☣♛♔♡✪❁✾✧", "☄ϟ★☆♥❥❦❧✿❀", "✦✩✫✬✭༒꧁꧂亗♚♕", "♖♗♘♙⚔☯☮☢☾☽"},
@@ -108,6 +113,8 @@ public class FontKeyboardService extends InputMethodService {
     int emojiPage = 0;
     int shape = 0;  // key shape template, read from the "kb" prefs in applyTheme()
     TextView micKey;
+    TextView shapeKey;
+    boolean shapePick = false;  // true while the style row shows the shape chips
     org.vosk.android.SpeechService speech;
     boolean listening = false;
     // signature of the theme/color prefs the current keyboard view was built with
@@ -154,6 +161,7 @@ public class FontKeyboardService extends InputMethodService {
         }
     };
     LinearLayout root, keysBox, styleRow;
+    HorizontalScrollView styleScroll;  // the scrollable row that holds styleRow
     final Handler handler = new Handler(Looper.getMainLooper());
 
     int dp(int v) {
@@ -224,6 +232,7 @@ public class FontKeyboardService extends InputMethodService {
         root.addView(tools, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
 
         HorizontalScrollView hs = new HorizontalScrollView(this);
+        styleScroll = hs;
         hs.setHorizontalScrollBarEnabled(false);
         styleRow = new LinearLayout(this);
         styleRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -246,8 +255,15 @@ public class FontKeyboardService extends InputMethodService {
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
         preloadVoice();
+        // the shape picker closes when the keyboard is shown again
+        boolean pickWasOpen = shapePick;
+        shapePick = false;
         // the keyboard view is cached between opens, so rebuild it when colors/theme changed in settings
         if (root != null && !prefSig().equals(appliedSig)) setInputView(onCreateInputView());
+        else if (pickWasOpen && styleRow != null) {
+            buildStrip();
+            buildStyleRow();
+        }
         SharedPreferences sp0 = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
         int en0 = sp0.getInt("en", 0), ar0 = sp0.getInt("ar", 0);
         if (en0 < 0 || en0 >= EN_STYLES.length - 2) en0 = 0;
@@ -305,6 +321,10 @@ public class FontKeyboardService extends InputMethodService {
 
     void buildStyleRow() {
         styleRow.removeAllViews();
+        if (shapePick) {
+            buildShapeChips();
+            return;
+        }
         final String[] names = styleNames();
         final int sel = selectedChip();
         for (int i = 0; i < names.length; i++) {
@@ -328,6 +348,60 @@ public class FontKeyboardService extends InputMethodService {
             t.setOnClickListener(v -> pickStyle(idx, names.length));
             styleRow.addView(t);
         }
+    }
+
+    // shape picker: the style row turns into shape chips, and every chip is drawn in the shape it names
+    void buildShapeChips() {
+        for (int i = 0; i < SHAPE_NAMES.length; i++) {
+            final int idx = i;
+            final boolean on = i == shape;
+            TextView t = new TextView(this);
+            t.setText(SHAPE_NAMES[i]);
+            t.setTextSize(13);
+            t.setSingleLine(true);
+            t.setGravity(Gravity.CENTER);
+            t.setPadding(dp(14), 0, dp(14), 0);
+            t.setTextColor(on ? Color.WHITE : TXT2);
+            t.setBackground(keyBg(on ? ACCENT : CHIP, i));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+            t.setLayoutParams(lp);
+            t.setOnClickListener(v -> pickShape(idx));
+            styleRow.addView(t);
+        }
+        TextView done = new TextView(this);
+        done.setText("تم ✓");
+        done.setTextSize(13);
+        done.setSingleLine(true);
+        done.setGravity(Gravity.CENTER);
+        done.setPadding(dp(14), 0, dp(14), 0);
+        done.setTextColor(TXT);
+        GradientDrawable g = new GradientDrawable();
+        g.setCornerRadius(dp(16));
+        g.setColor(SPECIAL);
+        done.setBackground(g);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        done.setLayoutParams(lp);
+        done.setOnClickListener(v -> toggleShapePick());
+        styleRow.addView(done);
+    }
+
+    void toggleShapePick() {
+        shapePick = !shapePick;
+        if (shapeKey != null) shapeKey.setBackground(keyBg(shapePick ? ACCENT : SPECIAL));
+        buildStyleRow();
+    }
+
+    // saves the shape and rebuilds the keyboard with it; the picker stays open so the user can keep changing it
+    void pickShape(int i) {
+        if (i == shape) return;
+        final int scrollX = styleScroll != null ? styleScroll.getScrollX() : 0;
+        shape = i;
+        getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS).edit().putInt("shape", i).apply();
+        setInputView(onCreateInputView());
+        // the keyboard is rebuilt, so put the chip row back where the user was scrolling
+        if (styleScroll != null) styleScroll.post(() -> styleScroll.scrollTo(scrollX, 0));
     }
 
     void pickStyle(int idx, int n) {
@@ -371,7 +445,7 @@ public class FontKeyboardService extends InputMethodService {
         return newRow(46);
     }
 
-    // key shapes: 0 classic, 1 pill, 2 glass, 3 gradient, 4 iOS-like (soft shadow)
+    // key shapes: 0 classic, 1 pill, 2 glass, 3 gradient, 4 iOS-like (soft shadow), 5 neon, 6 3D keycap
     static int mix(int a, int b, float t) {
         int r = (int) (((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
         int g = (int) (((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
@@ -379,9 +453,14 @@ public class FontKeyboardService extends InputMethodService {
         return 0xFF000000 | (r << 16) | (g << 8) | bl;
     }
 
-    GradientDrawable keyBg(int color) {
+    Drawable keyBg(int color) {
+        return keyBg(color, shape);
+    }
+
+    // shp is the shape to draw, so the shape picker can show every shape
+    Drawable keyBg(int color, int shp) {
         GradientDrawable g = new GradientDrawable();
-        switch (shape) {
+        switch (shp) {
             case 1: // pill
                 g.setColor(color);
                 g.setCornerRadius(dp(60));
@@ -400,6 +479,20 @@ public class FontKeyboardService extends InputMethodService {
                 g.setColor(color);
                 g.setCornerRadius(dp(7));
                 break;
+            case 5: // neon: dark fill with a glowing accent border
+                g.setColor(mix(color, 0xFF000000, 0.35f));
+                g.setCornerRadius(dp(10));
+                g.setStroke(dp(2), ACCENT);
+                break;
+            case 6: { // 3D keycap: a darker base with the key face sitting on top of it
+                GradientDrawable base = new GradientDrawable();
+                base.setColor(mix(color, 0xFF000000, 0.45f));
+                base.setCornerRadius(dp(8));
+                GradientDrawable face = new GradientDrawable();
+                face.setColor(color);
+                face.setCornerRadius(dp(8));
+                return new LayerDrawable(new Drawable[]{base, new InsetDrawable(face, 0, 0, 0, dp(3))});
+            }
             default: // classic
                 g.setColor(color);
                 g.setCornerRadius(dp(8));
@@ -1111,6 +1204,9 @@ public class FontKeyboardService extends InputMethodService {
         });
         cl.setTextSize(16);
         strip.addView(cl);
+        shapeKey = key("\u25E7", 0.9f, shapePick ? ACCENT : SPECIAL, this::toggleShapePick);
+        shapeKey.setTextSize(16);
+        strip.addView(shapeKey);
         TextView sizeBtn = key("\u21D5", 0.9f, SPECIAL, this::cycleSize);
         sizeBtn.setTextSize(18);
         strip.addView(sizeBtn);
@@ -1143,7 +1239,7 @@ public class FontKeyboardService extends InputMethodService {
         if (ic > 0 && ic < PALETTE.length) TXT = PALETTE[ic];
         if (sc > 0 && sc < PALETTE.length) TXT2 = PALETTE[sc];
         shape = kp.getInt("shape", 0);
-        if (shape < 0 || shape > 4) shape = 0;
+        if (shape < 0 || shape >= SHAPE_NAMES.length) shape = 0;
     }
 
     void cycleTheme() {

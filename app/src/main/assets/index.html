@@ -319,7 +319,7 @@ window.onVoice=function(p){
 const KB_COLORS=['#8a90c8','#ffffff','#ffd36a','#2ecc71','#3d9bff','#ff5ca8','#ff7a3d'];
 function kbGet(k){try{return window.Android&&Android.getKbPref?Android.getKbPref(k):0}catch(e){return 0}}
 function kbSet(k,i){if(window.Android&&Android.setKbPref)Android.setKbPref(k,i);render()}
-const SHAPES=['كلاسيك','حبوب','زجاجي','متدرّج','iOS'];
+const SHAPES=['كلاسيك','حبوب','زجاجي','متدرّج','iOS','نيون','3D'];
 function shapeSeg(){const cur=kbGet('shape');return `<div class="seg" style="margin-top:calc(var(--u)*6);flex-wrap:wrap">${SHAPES.map((n,i)=>`<span class="${i===cur?'on':''}" onclick="kbSet('shape',${i})">${n}</span>`).join('')}</div>`}
 function toggleDaily(){const on=!kbGet('daily');kbSet('daily',on?1:0);if(on&&window.Android&&Android.askNotif)Android.askNotif()}
 function kbDots(k){const cur=kbGet(k);return `<div style="display:flex;gap:8px;margin-top:calc(var(--u)*6);flex-wrap:wrap">${KB_COLORS.map((c,i)=>`<div class="dot ${i===cur?'on':''}" style="background:${c}" onclick="kbSet('${k}',${i})"></div>`).join('')}</div>`}
@@ -346,7 +346,7 @@ function settingsHtml(){
    <div class="row" style="display:block"><div class="l">لون الأيقونة الصغيرة<div class="s">لون الكتابة الصغيرة: الستايلات، ABC، 123</div></div>${kbDots('smallC')}</div>
   </div>
   <div class="sec">شكل الكيبورد</div><div class="box">
-   <div class="row" style="display:block"><div class="l">شكل الزراير<div class="s">اختار الشكل اللي يعجبك، والتغيير بيظهر في الكيبورد على طول</div></div>${shapeSeg()}</div>
+   <div class="row" style="display:block"><div class="l">شكل الزراير<div class="s">اختار الشكل اللي يعجبك، والتغيير بيظهر في الكيبورد على طول. تقدر تغيّره كمان من زرار ◧ جوه الكيبورد</div></div>${shapeSeg()}</div>
   </div>
   <div class="sec">الإشعارات</div><div class="box">
    <div class="row"><div class="l">إشعار ستايل يومي<div class="s">كل يوم الساعة 9 الصبح، ستايل جديد تقدر تنسخه بضغطة</div></div><div class="sw ${kbGet('daily')?'on':''}" onclick="toggleDaily()"></div></div>
@@ -390,7 +390,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.16<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.17<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
