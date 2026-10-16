@@ -354,9 +354,15 @@ window.onVoice=function(p){
   else if(p>=0){voiceSt=2;voicePct=p}
   if(tab==='set')render();
 };
-const KB_COLORS=['#8a90c8','#ffffff','#ffd36a','#2ecc71','#3d9bff','#ff5ca8','#ff7a3d'];
+const KB_COLORS=['#8a90c8','#ffffff','#ffd36a','#2ecc71','#3d9bff','#ff5ca8','#ff7a3d','#ff8a3d','#ffc145','#ff6b9d','#39ff14','#00e5ff','#ff2bd6'];
+const KB_THEMES=['بنفسجي','أخضر','أحمر','أزرق','فاتح','دافئ غروب','دافئ عسل','نيون وردي','نيون أخضر','سمتي'];
+const CUS_COLORS=['#0e0f2e','#1c1f52','#2b1410','#4a241a','#2a2010','#090711','#06100a','#1b1b3a','#ffffff','#fff4e6','#b4b7e6','#ffc9a0','#6a62f2','#ff8a3d','#ffc145','#ff2bd6','#39ff14','#00e5ff'];
+function intOf(h){return (0xFF000000|parseInt(h.slice(1),16))|0}
+function cusDots(k){const cur=kbGet(k);return `<div style="display:flex;gap:8px;margin-top:calc(var(--u)*6);flex-wrap:wrap">${CUS_COLORS.map(c=>`<div class="dot ${intOf(c)===cur?'on':''}" style="background:${c}" onclick="kbSet('${k}',${intOf(c)})"></div>`).join('')}</div>`}
+function themeSeg(){const cur=kbGet('theme');return `<div class="seg" style="margin-top:calc(var(--u)*6);flex-wrap:wrap">${KB_THEMES.map((n,i)=>`<span class="${i===cur?'on':''}" onclick="kbSet('theme',${i})">${n}</span>`).join('')}</div>`}
+function mediaGranted(){try{return !!(window.Android&&Android.mediaGranted&&Android.mediaGranted())}catch(e){return false}}
 function kbGet(k){try{return window.Android&&Android.getKbPref?Android.getKbPref(k):0}catch(e){return 0}}
-function kbSet(k,i){if(window.Android&&Android.setKbPref)Android.setKbPref(k,i);render()}
+function kbSet(k,i){if(window.Android&&Android.setKbPref){if(['cBG','cKEY','cACC','cTXT','cTXT2'].includes(k))Android.setKbPref('theme',KB_THEMES.length-1);Android.setKbPref(k,i)}render()}
 const SHAPES=['كلاسيك','حبوب','زجاجي','متدرّج','iOS','نيون','3D'];
 function shapeSeg(){const cur=kbGet('shape');return `<div class="seg" style="margin-top:calc(var(--u)*6);flex-wrap:wrap">${SHAPES.map((n,i)=>`<span class="${i===cur?'on':''}" onclick="kbSet('shape',${i})">${n}</span>`).join('')}</div>`}
 function toggleDaily(){const on=!kbGet('daily');kbSet('daily',on?1:0);if(on&&window.Android&&Android.askNotif)Android.askNotif()}
@@ -382,6 +388,14 @@ function settingsHtml(){
   <div class="sec">ألوان الكيبورد</div><div class="box">
    <div class="row" style="display:block"><div class="l">لون الأيقونة<div class="s">لون الحروف والأزرار الأساسية (الأول = لون الثيم)</div></div>${kbDots('iconC')}</div>
    <div class="row" style="display:block"><div class="l">لون الأيقونة الصغيرة<div class="s">لون الكتابة الصغيرة: الستايلات، ABC، 123</div></div>${kbDots('smallC')}</div>
+   <div class="row" style="display:block"><div class="l">سمة الكيبورد<div class="s">اختار سمة جاهزة (دافئة أو نيون) أو اعمل سمتك</div></div>${themeSeg()}</div>
+   <div class="row" style="display:block"><div class="l">سمتي<div class="s">اختار ألوانك، والكيبورد بيتغير على طول وتتحفظ لوحدها</div></div>
+     <div class="s" style="margin-top:calc(var(--u)*6)">لون الخلفية</div>${cusDots('cBG')}
+     <div class="s" style="margin-top:calc(var(--u)*6)">لون المفاتيح</div>${cusDots('cKEY')}
+     <div class="s" style="margin-top:calc(var(--u)*6)">لون التمييز والإضاءة</div>${cusDots('cACC')}
+     <div class="s" style="margin-top:calc(var(--u)*6)">لون الكتابة</div>${cusDots('cTXT')}
+   </div>
+   <div class="row"><div class="l">آخر سكرين شوت في الحافظة<div class="s">الكيبورد يعرض آخر سكرين شوت في الحافظة وعلى أيقونة 📋. محتاج صلاحية الصور</div></div><div class="go" onclick="if(window.Android&&Android.mediaRequest)Android.mediaRequest()">${mediaGranted()?'مسموح':'اسمح'}</div></div>
   </div>
   <div class="sec">شكل الكيبورد</div><div class="box">
    <div class="row" style="display:block"><div class="l">شكل الزراير<div class="s">اختار الشكل اللي يعجبك، والتغيير بيظهر في الكيبورد على طول. تقدر تغيّره كمان من زرار ◧ جوه الكيبورد</div></div>${shapeSeg()}</div>
@@ -428,7 +442,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.32<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.33<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;

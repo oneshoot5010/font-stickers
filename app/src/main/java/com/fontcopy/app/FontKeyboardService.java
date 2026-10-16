@@ -65,7 +65,8 @@ public class FontKeyboardService extends InputMethodService {
     static int TXT2 = 0xFFB4B7E6;
     // BG, KEY, SPECIAL, ACCENT, CHIP, TXT, TXT2
     // user-picked colors (index 0 = keep theme default); stored in the "kb" prefs as iconC / smallC
-    static final int[] PALETTE = {0, 0xFFFFFFFF, 0xFFFFD36A, 0xFF2ECC71, 0xFF3D9BFF, 0xFFFF5CA8, 0xFFFF7A3D};
+    static final int[] PALETTE = {0, 0xFFFFFFFF, 0xFFFFD36A, 0xFF2ECC71, 0xFF3D9BFF, 0xFFFF5CA8, 0xFFFF7A3D,
+            0xFFFF8A3D, 0xFFFFC145, 0xFFFF6B9D, 0xFF39FF14, 0xFF00E5FF, 0xFFFF2BD6};
     // key shapes: the index is what the "kb" prefs keep as "shape" (same order as SHAPES in index.html)
     static final String[] SHAPE_NAMES = {"كلاسيك", "حبوب", "زجاجي", "متدرّج", "iOS", "نيون", "3D"};
     // symbol pages (no emoji), 4 rows of 10 each
@@ -83,7 +84,13 @@ public class FontKeyboardService extends InputMethodService {
             {0xFF0B1A12, 0xFF16301F, 0xFF1F4A30, 0xFF2ECC71, 0xFF10261A, 0xFFFFFFFF, 0xFFA8D8B9},
             {0xFF101010, 0xFF242424, 0xFF383838, 0xFFE53935, 0xFF1A1A1A, 0xFFFFFFFF, 0xFFBBBBBB},
             {0xFF0A1A2E, 0xFF14304F, 0xFF1E4A78, 0xFF29B6F6, 0xFF0F2540, 0xFFFFFFFF, 0xFFA9CBE8},
-            {0xFFEDEDF5, 0xFFFFFFFF, 0xFFC9CBE0, 0xFF6A62F2, 0xFFDADCEC, 0xFF1B1B3A, 0xFF454775}
+            {0xFFEDEDF5, 0xFFFFFFFF, 0xFFC9CBE0, 0xFF6A62F2, 0xFFDADCEC, 0xFF1B1B3A, 0xFF454775},
+            {0xFF2B1410, 0xFF4A241A, 0xFF6B3322, 0xFFFF8A3D, 0xFF3A1D15, 0xFFFFF4E6, 0xFFFFC9A0},
+            {0xFF2A2010, 0xFF4A3A1A, 0xFF6E5622, 0xFFFFC145, 0xFF3A2D14, 0xFFFFFBEA, 0xFFFFE199},
+            {0xFF090711, 0xFF1C0F2E, 0xFF2E1248, 0xFFFF2BD6, 0xFF140A22, 0xFFFFFFFF, 0xFFFF9BEB},
+            {0xFF06100A, 0xFF0E2416, 0xFF163A22, 0xFF39FF14, 0xFF0B1C10, 0xFFFFFFFF, 0xFFB6FF9E},
+            // custom theme: the colors come from the app settings ("cBG", "cKEY", "cACC", "cTXT", "cTXT2")
+            {0xFF0E0F2E, 0xFF1C1F52, 0xFF2A2E7A, 0xFF6A62F2, 0xFF14173F, 0xFFFFFFFF, 0xFFB4B7E6}
     };
     static final HashMap<String, String[]> ALTS = new HashMap<>();
 
@@ -142,7 +149,8 @@ public class FontKeyboardService extends InputMethodService {
     String appliedSig = "";
     String prefSig() {
         SharedPreferences p = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
-        return p.getInt("theme", 0) + "," + p.getInt("iconC", 0) + "," + p.getInt("smallC", 0) + "," + p.getInt("size", 1) + "," + p.getInt("shape", 0);
+        return p.getInt("theme", 0) + "," + p.getInt("iconC", 0) + "," + p.getInt("smallC", 0) + "," + p.getInt("size", 1) + "," + p.getInt("shape", 0)
+                + "," + p.getInt("cBG", 0) + "," + p.getInt("cKEY", 0) + "," + p.getInt("cACC", 0) + "," + p.getInt("cTXT", 0) + "," + p.getInt("cTXT2", 0);
     }   // current page of the symbols/stickers keyboard (mode 5)
     boolean prog = false;
     boolean secret = false;
@@ -905,6 +913,20 @@ public class FontKeyboardService extends InputMethodService {
             ArrayList<String> ord = new ArrayList<>();
             for (String x : items) if (x.startsWith("\u0002")) ord.add(x);
             for (String x : items) if (!x.startsWith("\u0002")) ord.add(x);
+            refreshShot();
+            if (shotUri != null && shotThumb != null) {
+                TextView st = key("آخر سكرين شوت: اضغط للنسخ", 1f, KEY, this::copyShot);
+                st.setTextSize(13);
+                st.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                st.setPadding(dp(8), 0, dp(10), 0);
+                android.graphics.drawable.Drawable pd = new android.graphics.drawable.BitmapDrawable(getResources(), shotThumb);
+                pd.setBounds(0, 0, dp(44), dp(44));
+                st.setCompoundDrawables(pd, null, null, null);
+                st.setCompoundDrawablePadding(dp(8));
+                LinearLayout sr = newRow(52);
+                sr.addView(st);
+                keysBox.addView(sr);
+            }
             LinearLayout top = newRow(34);
             TextView clr = key("\uD83D\uDDD1 مسح غير المثبت", 1f, SPECIAL, () -> {
                 ArrayList<String> keep = new ArrayList<>();
@@ -1264,12 +1286,20 @@ public class FontKeyboardService extends InputMethodService {
             suggVals[i] = null;
             strip.addView(s);
         }
-        TextView cl = key("\uD83D\uDCCB", 0.9f, SPECIAL, () -> {
+        refreshShot();
+        TextView cl = key(clipLabel(), 0.9f, SPECIAL, () -> {
             mode = (mode == 6) ? 0 : 6;
             buildStyleRow();
             buildKeys();
         });
-        cl.setTextSize(16);
+        cl.setTextSize(9);
+        if (shotThumb != null) {
+            android.graphics.drawable.Drawable sd = new android.graphics.drawable.BitmapDrawable(getResources(), shotThumb);
+            sd.setBounds(0, 0, dp(22), dp(22));
+            cl.setCompoundDrawables(null, sd, null, null);
+            cl.setCompoundDrawablePadding(dp(1));
+        }
+        clipKey = cl;
         strip.addView(cl);
         shapeKey = key("\u25E7", 0.9f, shapePick ? ACCENT : SPECIAL, this::toggleShapePick);
         shapeKey.setTextSize(16);
@@ -1291,9 +1321,15 @@ public class FontKeyboardService extends InputMethodService {
     }
 
     void applyTheme() {
-        int t = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS).getInt("theme", 0);
+        SharedPreferences kp = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
+        int t = kp.getInt("theme", 0);
         if (t < 0 || t >= THEMES.length) t = 0;
         int[] c = THEMES[t];
+        if (t == THEMES.length - 1) {
+            int bg = kp.getInt("cBG", c[0]), ky = kp.getInt("cKEY", c[1]), acc = kp.getInt("cACC", c[3]);
+            int tx = kp.getInt("cTXT", c[5]), tx2 = kp.getInt("cTXT2", c[6]);
+            c = new int[]{bg, ky, blend(ky, 0xFFFFFFFF, 0.12f), acc, blend(bg, ky, 0.5f), tx, tx2};
+        }
         BG = c[0];
         KEY = c[1];
         SPECIAL = c[2];
@@ -1301,12 +1337,19 @@ public class FontKeyboardService extends InputMethodService {
         CHIP = c[4];
         TXT = c[5];
         TXT2 = c[6];
-        SharedPreferences kp = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
         int ic = kp.getInt("iconC", 0), sc = kp.getInt("smallC", 0);
         if (ic > 0 && ic < PALETTE.length) TXT = PALETTE[ic];
         if (sc > 0 && sc < PALETTE.length) TXT2 = PALETTE[sc];
         shape = kp.getInt("shape", 0);
         if (shape < 0 || shape >= SHAPE_NAMES.length) shape = 0;
+    }
+
+    // mixes two colors: t = 0 gives a, t = 1 gives b
+    static int blend(int a, int b, float t) {
+        int r = (int) (((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
+        int g = (int) (((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
+        int bl = (int) ((a & 0xFF) * (1 - t) + (b & 0xFF) * t);
+        return 0xFF000000 | (r << 16) | (g << 8) | bl;
     }
 
     void cycleTheme() {
@@ -1596,6 +1639,74 @@ public class FontKeyboardService extends InputMethodService {
         micKey.setTextColor(listening ? ACCENT : TXT);
     }
 
+    // ---------- last screenshot + clipboard preview ----------
+    Bitmap shotThumb = null;
+    Uri shotUri = null;
+    long shotAt = 0;
+    TextView clipKey = null;
+
+    // finds the newest screenshot in the gallery (needs the photo permission the app asks for)
+    void refreshShot() {
+        if (System.currentTimeMillis() - shotAt < 5000) return;
+        shotAt = System.currentTimeMillis();
+        shotThumb = null;
+        shotUri = null;
+        try {
+            String perm = android.os.Build.VERSION.SDK_INT >= 33
+                    ? "android.permission.READ_MEDIA_IMAGES" : "android.permission.READ_EXTERNAL_STORAGE";
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, perm)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) return;
+            android.database.Cursor c = getContentResolver().query(
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{android.provider.MediaStore.Images.Media._ID},
+                    android.provider.MediaStore.Images.Media.DISPLAY_NAME + " LIKE ?",
+                    new String[]{"%screenshot%"},
+                    android.provider.MediaStore.Images.Media.DATE_ADDED + " DESC");
+            if (c == null) return;
+            if (c.moveToFirst()) {
+                long id = c.getLong(0);
+                shotUri = android.content.ContentUris.withAppendedId(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                shotThumb = android.provider.MediaStore.Images.Thumbnails.getThumbnail(
+                        getContentResolver(), id, android.provider.MediaStore.Images.Thumbnails.MINI_KIND, null);
+            }
+            c.close();
+        } catch (Exception ignored) {
+            shotThumb = null;
+            shotUri = null;
+        }
+    }
+
+    // puts the screenshot on the clipboard as an image, so it can be pasted in any app
+    void copyShot() {
+        if (shotUri == null || cm == null) return;
+        try {
+            cm.setPrimaryClip(ClipData.newUri(getContentResolver(), "screenshot", shotUri));
+            Toast.makeText(this, "تم نسخ السكرين شوت، الصقه في التطبيق", Toast.LENGTH_SHORT).show();
+        } catch (Exception ignored) {
+        }
+    }
+
+    String clipPreview() {
+        ArrayList<String> l = clipList();
+        if (l.isEmpty()) return "";
+        String x = l.get(0);
+        if (x.startsWith("\u0002")) x = x.substring(1);
+        x = x.replace("\n", " ");
+        return x.length() > 7 ? x.substring(0, 7) + "…" : x;
+    }
+
+    String clipLabel() {
+        String p = clipPreview();
+        String head = shotThumb != null ? "" : "\uD83D\uDCCB";
+        if (p.isEmpty()) return head;
+        return head.isEmpty() ? p : head + "\n" + p;
+    }
+
+    void refreshClipKey() {
+        if (clipKey != null) clipKey.setText(clipLabel());
+    }
+
     // ---------- clipboard ----------
     ArrayList<String> clipList() {
         String h = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS).getString("clip", "");
@@ -1617,6 +1728,7 @@ public class FontKeyboardService extends InputMethodService {
             if (cm == null) return;
             ClipData d = cm.getPrimaryClip();
             if (d == null || d.getItemCount() == 0) return;
+            if (d.getDescription() != null && d.getDescription().hasMimeType("image/*")) return;
             if (d.getDescription() != null && d.getDescription().getExtras() != null
                     && d.getDescription().getExtras().getBoolean("android.content.extra.IS_SENSITIVE", false)) return;
             CharSequence cs = d.getItemAt(0).coerceToText(this);
@@ -1624,6 +1736,7 @@ public class FontKeyboardService extends InputMethodService {
             String s = cs.toString().trim();
             if (s.isEmpty() || s.length() > 2000) return;
             addClip(s);
+            refreshClipKey();
         } catch (Exception ignored) {
         }
     }

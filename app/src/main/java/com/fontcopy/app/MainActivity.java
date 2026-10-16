@@ -410,7 +410,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void setKbPref(String k, int v) {
-            if (!"iconC".equals(k) && !"smallC".equals(k) && !"shape".equals(k) && !"daily".equals(k)) return;
+            if (!java.util.Arrays.asList("iconC", "smallC", "shape", "daily", "theme", "cBG", "cKEY", "cACC", "cTXT", "cTXT2").contains(k)) return;
             getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS).edit().putInt(k, v).apply();
             if ("daily".equals(k)) {
                 if (v == 1) DailyStyle.schedule(MainActivity.this);
@@ -438,6 +438,20 @@ public class MainActivity extends Activity {
         public boolean voiceMic() {
             return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
                     == PackageManager.PERMISSION_GRANTED;
+        }
+
+        @JavascriptInterface
+        public void mediaRequest() {
+            runOnUiThread(() -> ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{android.os.Build.VERSION.SDK_INT >= 33
+                            ? Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE}, 43));
+        }
+
+        @JavascriptInterface
+        public boolean mediaGranted() {
+            String p = android.os.Build.VERSION.SDK_INT >= 33
+                    ? Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
+            return ContextCompat.checkSelfPermission(MainActivity.this, p) == PackageManager.PERMISSION_GRANTED;
         }
 
         @JavascriptInterface
