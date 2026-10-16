@@ -111,6 +111,17 @@ public class FontKeyboardService extends InputMethodService {
     int oneHand = 0;
     int decorPage = 0;
     int emojiPage = 0;
+    int emoCat = 1;   // 0 = recent, 1..8 = EmojiData.CAT
+    int emoPage = 0;  // page inside the current category
+    void addRecent(String em) {
+        SharedPreferences p = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
+        ArrayList<String> l = new ArrayList<>();
+        l.add(em);
+        for (String x : p.getString("emo_r", "").split("\u0001")) {
+            if (!x.isEmpty() && !x.equals(em) && l.size() < 24) l.add(x);
+        }
+        p.edit().putString("emo_r", TextUtils.join("\u0001", l)).apply();
+    }
     int shape = 0;  // key shape template, read from the "kb" prefs in applyTheme()
     TextView micKey;
     TextView shapeKey;
@@ -795,31 +806,69 @@ public class FontKeyboardService extends InputMethodService {
                 keysBox.addView(hr);
             }
         } else if (mode == 4) {
-            String[] pg = EMOJI[emojiPage];
-            for (int row = 0; row < 4; row++) {
+            final SharedPreferences ep = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
+            final int skin = ep.getInt("skin", 0);
+            final String rec = ep.getString("emo_r", "");
+            final String[] emoList = (emoCat == 0)
+                    ? (rec.isEmpty() ? new String[0] : rec.split("\u0001"))
+                    : EmojiData.CAT[emoCat].split(" ");
+            final int perPage = 24;
+            final int pages = Math.max(1, (emoList.length + perPage - 1) / perPage);
+            if (emoPage >= pages) emoPage = 0;
+            final int pg = emoPage;
+            // row 1: categories
+            LinearLayout cr = newRow(34);
+            for (int i = 0; i < EmojiData.ICONS.length; i++) {
+                final int ci = i;
+                TextView ck = key(EmojiData.ICONS[i], 1f, ci == emoCat ? ACCENT : SPECIAL, () -> {
+                    emoCat = ci;
+                    emoPage = 0;
+                    buildKeys();
+                });
+                ck.setTextSize(14);
+                cr.addView(ck);
+            }
+            keysBox.addView(cr);
+            // rows 2-4: emoji grid, 3 x 8
+            for (int row = 0; row < 3; row++) {
                 LinearLayout er = newRow();
                 for (int c = 0; c < 8; c++) {
-                    final String em = pg[row * 8 + c];
-                    TextView ek = fastKey(em, 1f, KEY, () -> typeRaw(em));
-                    ek.setTextSize(20);
-                    er.addView(ek);
+                    int idx = pg * perPage + row * 8 + c;
+                    if (idx < emoList.length) {
+                        final String base = emoList[idx];
+                        final String em = (emoCat == 2 && skin > 0) ? base + EmojiData.SKIN[skin] : base;
+                        TextView ek = fastKey(em, 1f, KEY, () -> {
+                            typeRaw(em);
+                            addRecent(em);
+                        });
+                        ek.setTextSize(20);
+                        er.addView(ek);
+                    } else {
+                        er.addView(spacer(1f));
+                    }
                 }
                 keysBox.addView(er);
             }
-            // page navigation: prev | dots | next
-            StringBuilder edots = new StringBuilder();
-            for (int i = 0; i < EMOJI.length; i++) edots.append(i == emojiPage ? "●" : "○");
-            LinearLayout enav = newRow(34);
-            enav.addView(key("‹", 1f, SPECIAL, () -> {
-                emojiPage = (emojiPage + EMOJI.length - 1) % EMOJI.length;
+            // row 5: skin tones (6) + page nav (2)
+            LinearLayout sr = newRow(34);
+            for (int i = 0; i < EmojiData.SKIN_LABEL.length; i++) {
+                final int si = i;
+                TextView sk = key(EmojiData.SKIN_LABEL[i], 1f, si == skin ? ACCENT : SPECIAL, () -> {
+                    ep.edit().putInt("skin", si).apply();
+                    buildKeys();
+                });
+                sk.setTextSize(15);
+                sr.addView(sk);
+            }
+            sr.addView(key("‹", 1f, SPECIAL, () -> {
+                emoPage = (emoPage + pages - 1) % pages;
                 buildKeys();
             }));
-            enav.addView(key(edots.toString(), 3f, KEY, null));
-            enav.addView(key("›", 1f, SPECIAL, () -> {
-                emojiPage = (emojiPage + 1) % EMOJI.length;
+            sr.addView(key("›", 1f, SPECIAL, () -> {
+                emoPage = (emoPage + 1) % pages;
                 buildKeys();
             }));
-            keysBox.addView(enav);
+            keysBox.addView(sr);
         } else if (mode == 5) {
             String[] rows = DECOR[decorPage];
             for (String s : rows) {
