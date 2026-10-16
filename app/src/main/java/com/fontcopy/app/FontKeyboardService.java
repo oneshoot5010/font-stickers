@@ -113,6 +113,16 @@ public class FontKeyboardService extends InputMethodService {
     int emojiPage = 0;
     int emoCat = 1;   // 0 = recent, 1..8 = EmojiData.CAT
     int emoPage = 0;  // page inside the current category
+    // hide emoji the device font cannot draw (they show as empty boxes on older phones)
+    static boolean emojiOk(String e) {
+        if (android.os.Build.VERSION.SDK_INT < 23) return true;
+        return new android.graphics.Paint().hasGlyph(e);
+    }
+    static String[] okOnly(String[] in) {
+        ArrayList<String> o = new ArrayList<>();
+        for (String e : in) if (!e.isEmpty() && emojiOk(e)) o.add(e);
+        return o.toArray(new String[0]);
+    }
     void addRecent(String em) {
         SharedPreferences p = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
         ArrayList<String> l = new ArrayList<>();
@@ -809,9 +819,9 @@ public class FontKeyboardService extends InputMethodService {
             final SharedPreferences ep = getSharedPreferences("kb", MODE_PRIVATE | MODE_MULTI_PROCESS);
             final int skin = ep.getInt("skin", 0);
             final String rec = ep.getString("emo_r", "");
-            final String[] emoList = (emoCat == 0)
+            final String[] emoList = okOnly((emoCat == 0)
                     ? (rec.isEmpty() ? new String[0] : rec.split("\u0001"))
-                    : EmojiData.CAT[emoCat].split(" ");
+                    : EmojiData.CAT[emoCat].split(" "));
             final int perPage = 24;
             final int pages = Math.max(1, (emoList.length + perPage - 1) / perPage);
             if (emoPage >= pages) emoPage = 0;
@@ -980,6 +990,14 @@ public class FontKeyboardService extends InputMethodService {
             return true;
         });
         b.addView(numKey);
+        // fixed emoji button: opens the emoji panel, tapping again goes back to letters
+        TextView emoKey = key("😀", 1f, mode == 4 ? ACCENT : SPECIAL, () -> {
+            mode = (mode == 4) ? 0 : 4;
+            buildStyleRow();
+            buildKeys();
+        });
+        emoKey.setTextSize(17);
+        b.addView(emoKey);
         b.addView(key(lang == 1 ? "EN" : "ع", 0.9f, SPECIAL, this::switchLang));
         TextView globe = key("🌐", 0.8f, SPECIAL, () -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
