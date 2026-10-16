@@ -45,7 +45,11 @@ nav{position:absolute;right:calc(var(--u)*8);bottom:0;left:calc(var(--u)*8);heig
 nav.home{left:calc(var(--u)*87)}
 nav div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--u)*8);color:var(--navtxt);gap:calc(var(--u)*1.5);position:relative}
 nav div.on{color:var(--a1)}
-nav div.on:after{content:"";position:absolute;bottom:0;left:25%;right:25%;height:calc(var(--u)*2);background:var(--a1);border-radius:calc(var(--u)*2)}
+#ind{position:absolute;bottom:0;height:calc(var(--u)*2);background:var(--a1);border-radius:calc(var(--u)*2);transition:left .3s cubic-bezier(.2,.8,.2,1),width .3s;pointer-events:none}
+nav{transition:transform .25s}
+body.typing nav{transform:translateY(calc(var(--u)*60))}
+.hbar{display:flex;gap:calc(var(--u)*6);margin:0 0 calc(var(--u)*8)}.hbar .field{flex:1;margin:0;width:auto}
+.nb{position:absolute;top:calc(var(--u)*-2);left:50%;margin-left:calc(var(--u)*4);min-width:calc(var(--u)*12);height:calc(var(--u)*12);padding:0 calc(var(--u)*2);border-radius:calc(var(--u)*6);background:var(--a1);color:#fff;font-size:calc(var(--u)*6.5);line-height:calc(var(--u)*12);text-align:center;font-weight:700}
 nav svg{width:calc(var(--u)*15);height:calc(var(--u)*15)}
 .page{padding:calc(var(--u)*4) calc(var(--u)*2) calc(var(--u)*10)}
 .h1{font-size:calc(var(--u)*15);font-weight:700;margin:calc(var(--u)*2) calc(var(--u)*4) calc(var(--u)*10)}
@@ -142,6 +146,7 @@ button.go{border:0;font-family:inherit}
   <div data-t="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM8 11h8M8 15h8"/></svg>السجل</div>
   <div data-t="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>الإعدادات</div>
   <div data-t="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>Developer</div>
+<i id="ind"></i>
 </nav>
 <div id="welcome" style="display:none"></div>
 <div id="rate"><div class="rbox">
@@ -215,7 +220,7 @@ const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const ACC=[['بنفسجي','#9a5cf5','#6a62f2','#5236d0'],['وردي','#ff5ca8','#c23cf0','#a02ad0'],['أزرق','#3d9bff','#2f5cf0','#2240c0'],['أخضر','#27d99a','#16a37f','#0f7a60'],['برتقالي','#ffa63d','#f05a2a','#c03a15']];
 let cfg=Object.assign({theme:'dark',acc:0,vib:true,keep:true,remote:true,fs:13.5,sample:'Font Copy Paste'},ld('cfg',{}));
 if(!cfg.fsv){cfg.fs=({10:11.5,12:13.5,14.5:16})[cfg.fs]||cfg.fs;cfg.fsv=2;try{localStorage.setItem('cfg',JSON.stringify(cfg))}catch(e){}}
-let favs=ld('favs',[]),hist=ld('hist',[]),cat='all',tab='home',chip='all';
+let favs=ld('favs',[]),hist=ld('hist',[]),cat='all',tab='home',chip='all',histQ='',nFired=false;
 const $=id=>document.getElementById(id);
 function applyCfg(){
   let th=cfg.theme;if(th==='auto')th=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
@@ -423,7 +428,7 @@ function devHtml(){
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
   </div>
-  <div class="foot">استيكر فونت · v1.9.29<br>Developed by Mohamed Hassan Taha</div></div>`;
+  <div class="foot">استيكر فونت · v1.9.30<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
 const SHARE_URL='https://github.com/oneshoot5010/font-stickers';
 const SHARE_MSG='جرب تطبيق استيكر فونت، اكتب بخطوط وزخارف مميزة في أي تطبيق 😍\n'+SHARE_URL;
@@ -688,6 +693,7 @@ function render(){
   document.querySelector('.side').style.display=home?'flex':'none';
   $('main').style.top=full?'8px':(home?'calc(var(--u)*101)':'calc(var(--u)*57)');
   $('nav').className=home?'home':'';
+  moveInd();
   $('cnt').textContent=[...$('q').value].length+' chars';
   const L=$('list');
   L._list=null; // stop the home list from appending cards into settings/developer/bio pages
@@ -705,11 +711,28 @@ function renderList(){
   let list=[];
   if(tab==='home')list=items();
   else if(tab==='favs')list=favs.map(t=>({cat:'Favorite',text:t}));
-  else if(tab==='hist')list=hist.map(t=>({cat:'History',text:t}));
+  else if(tab==='hist')list=hist.filter(t=>!histQ||t.toLowerCase().includes(histQ.toLowerCase())).map(t=>({cat:'History',text:t}));
   else return;
   L._list=list;L._n=0;L._hdr=tab==='home'&&cat==='all'&&!$('q').value;L._lc=null;
-  if(!list.length){L.innerHTML='<div class="empty">Nothing here yet</div>';return}
-  L.innerHTML='';appendCards(L);decorate(list);
+  if(tab==='hist'){
+    if($('hbar'))L.querySelectorAll('.card,.sec,.empty').forEach(n=>n.remove());
+    else{L.innerHTML='';L.appendChild(histBar())}
+  }else L.innerHTML='';
+  navBadge();
+  if(!list.length){L.insertAdjacentHTML('beforeend','<div class="empty">'+(tab==='hist'&&histQ?'ما فيش نتايج':'Nothing here yet')+'</div>');return}
+  appendCards(L);decorate(list);
+}
+function histBar(){
+  const b=document.createElement('div');b.id='hbar';b.className='hbar';
+  b.innerHTML='<input class="field" id="hq" placeholder="ابحث في السجل" autocomplete="off" value="'+esc(histQ)+'"><button class="act red" id="hclr">امسح الكل</button>';
+  return b;
+}
+function navBadge(){
+  const f=document.querySelector('nav [data-t=favs]');if(!f)return;
+  let b=f.querySelector('.nb');
+  if(!favs.length){if(b)b.remove();return}
+  if(!b){b=document.createElement('b');b.className='nb';f.appendChild(b)}
+  b.textContent=favs.length>99?'99+':favs.length;
 }
 let rate=ld('rate',{next:15,done:false});
 function vib(n){if(cfg.vib&&navigator.vibrate)try{navigator.vibrate(n)}catch(e){}}
@@ -726,8 +749,28 @@ $('clr').onclick=()=>{$('q').value='';render()};
 $('cats').onclick=e=>{if(pinFired){pinFired=false;return}const c=e.target.closest('[data-c]');if(c){cat=c.dataset.c;if(CHIPN[chip])chip='all';render();$('list').scrollTop=0;const L=$('list');L.classList.remove('swap');void L.offsetWidth;L.classList.add('swap')}};
 $('more').onclick=()=>{tab='set';syncNav();render()};
 $('chips').onclick=e=>{const c=e.target.closest('[data-p]');if(c){chip=c.dataset.p;if(chip==='fonts')cat='fonts';else if(cat==='fonts'||CHIPN[chip])cat='all';render();$('list').scrollTop=0}};
-function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab))}
-$('nav').onclick=e=>{const d=e.target.closest('[data-t]');if(!d)return;tab=d.dataset.t;syncNav();render();$('list').scrollTop=0};
+function syncNav(){[...$('nav').children].forEach(n=>n.classList.toggle('on',n.dataset.t===tab));moveInd()}
+function moveInd(){const a=$('nav').querySelector('div.on'),i=$('ind');if(!a||!i)return;i.style.left=(a.offsetLeft+a.offsetWidth*.25)+'px';i.style.width=(a.offsetWidth*.5)+'px'}
+$('nav').onclick=e=>{if(nFired){nFired=false;return}const d=e.target.closest('[data-t]');if(!d)return;vib(12);tab=d.dataset.t;syncNav();render();$('list').scrollTop=0};
+function navLong(t){
+  if(t==='favs'){
+    if(!favs.length){toast('المفضلة فاضية');return}
+    const txt=favs.join('\n');
+    if(window.Android&&Android.copy)Android.copy(txt);else navigator.clipboard&&navigator.clipboard.writeText(txt);
+    toast('تم نسخ كل المفضلة');
+  }else{
+    if(!hist.length){toast('السجل فاضي');return}
+    const txt=hist.join('\n');
+    if(window.Android&&Android.share)Android.share(txt);else if(navigator.share)navigator.share({text:txt});else toast('متاح داخل التطبيق فقط');
+  }
+}
+let nlp=null;
+$('nav').addEventListener('touchstart',e=>{nFired=false;clearTimeout(nlp);nlp=null;const d=e.target.closest('[data-t]');if(!d||(d.dataset.t!=='favs'&&d.dataset.t!=='hist'))return;const t=d.dataset.t;nlp=setTimeout(()=>{nlp=null;nFired=true;vib(40);navLong(t)},500)},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(ev=>$('nav').addEventListener(ev,()=>{clearTimeout(nlp);nlp=null},{passive:true}));
+$('list').addEventListener('input',e=>{if(e.target.id==='hq'){histQ=e.target.value;renderList()}});
+$('list').addEventListener('click',e=>{if(e.target.id==='hclr'){hist=[];sv('hist',hist);histQ='';toast('تم مسح السجل');renderList()}});
+$('q').addEventListener('focus',()=>document.body.classList.add('typing'));
+$('q').addEventListener('blur',()=>document.body.classList.remove('typing'));
 /* 3D carousel for the category rail: items curve away from the centre while scrolling */
 function wheel(){const W=$('cats');if(!W)return;const r=W.getBoundingClientRect();if(!r.height)return;const mid=r.top+r.height/2;W.querySelectorAll('.cat').forEach(c=>{const b=c.getBoundingClientRect();const d=Math.max(-1,Math.min(1,(b.top+b.height/2-mid)/(r.height/2)));c.style.transform=`rotateX(${(-d*50).toFixed(1)}deg) scale(${(1-Math.abs(d)*0.18).toFixed(3)})`;c.style.opacity=(1-Math.abs(d)*0.3).toFixed(2)})}
 $('cats').addEventListener('scroll',()=>requestAnimationFrame(wheel),{passive:true});
