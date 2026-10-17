@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "490884250196",
+    "project_id": "font-stickers-b7f3f",
+    "storage_bucket": "font-stickers-b7f3f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490884250196:android:8eee250f897c7828df4bc1",
+        "android_client_info": {
+          "package_name": "com.fontcopy.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFAD8cMEHgz-9m7QJ49Cn620rA9763ZSc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
