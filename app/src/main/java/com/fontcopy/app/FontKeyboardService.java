@@ -2321,7 +2321,22 @@ public class FontKeyboardService extends InputMethodService {
     TextView clipKey = null;
 
     // finds the newest screenshot in the gallery (needs the photo permission the app asks for)
+    volatile boolean shotBusy = false;
+
     void refreshShot() {
+        if (shotBusy) return;
+        shotBusy = true;
+        new Thread(() -> {
+            try {
+                refreshShotSync();
+            } catch (Throwable ignored) {
+            }
+            shotBusy = false;
+            handler.post(this::refreshClipKey);
+        }).start();
+    }
+
+    void refreshShotSync() {
         if (System.currentTimeMillis() - shotAt < 5000) return;
         shotAt = System.currentTimeMillis();
         shotThumb = null;
