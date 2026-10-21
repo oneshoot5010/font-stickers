@@ -207,12 +207,14 @@ const AR_STYLES=[
 ];
 const NAME_T=[['Free Fire','{t}亗'],['Free Fire','亗{t}亗'],['Free Fire','{t}ッ'],['Free Fire','ꜱᴛʏʟᴇ丶{sc}'],['PUBG','{sc}丶ᴾᴿᴼ'],['PUBG','xX{t}Xx'],['PUBG','「{t}」'],['Free Fire','{ds}亗'],['Free Fire','亗{bs}亗'],['Free Fire','{fr}ッ'],['Free Fire','FF丶{t}'],['Free Fire','{t}丶FF'],['Free Fire','★彡{t}彡★'],['Free Fire','⚔{t}⚔'],['Free Fire','🔥{bs}🔥'],['Free Fire','{sc}亗★'],['PUBG','xX{bs}Xx'],['PUBG','xX_{t}_Xx'],['PUBG','⚔{ds}⚔'],['PUBG','ミ★{t}★彡'],['PUBG','PUBG丶{t}'],['PUBG','{t}丶PUBG'],['PUBG','『{bs}』'],['PUBG','♛{sc}♛'],['PUBG','︻デ═一{t}'],['PUBG','🎯{t}🎯'],['Pro','{bs}丶ᴾʳᵒ'],['Legend','{ds}丶ᴸᵉᵍᵉⁿᵈ'],['King','♛{t}♛'],['King','{fr}丶ᴷⁱⁿᵍ'],['Boss','{t}丶ᴮᵒˢˢ'],['Sniper','{t}︻デ═一'],['Sniper','︻╦╤─ {t}'],['Ghost','{t}☠'],['Ghost','☠{sc}☠'],['Fire','🔥{t}🔥'],['Fire','{t}🔥'],['Dark','⚡{bs}⚡'],['Dark','{t}丶ᴰᵃʳᵏ'],['Short','{t}ツ'],['Short','ツ{t}'],['Instagram','{t}.✨'],['Instagram','✨{sc}✨'],['Instagram','{t}_official']];
 const nameFmt=(p,t)=>p.replace('{sc}',smallcaps(t)).replace('{bs}',off(0x1D4D0,0x1D4EA,0x1D7CE)(t)).replace('{ds}',ds(t)).replace('{fr}',off(0x1D56C,0x1D586,0x1D7CE)(t)).replace('{t}',t);
+const SHADOW_IC=`<svg viewBox="0 0 48 48" width="100%" height="100%"><rect width="48" height="48" rx="11" fill="#e8403a"/><path d="M24 9L13 13V24C13 31 18 36 24 39Z" fill="#fff"/><path d="M24 9L35 13V24C35 31 30 36 24 39Z" fill="#111"/></svg>`;
 const LINKS={
  gh:'https://github.com/oneshoot5010',
  wa:'https://wa.me/201044947639',
  emoji:'https://github.com/oneshoot5010/emoji_stickers/releases/download/latest/emoji-stickers.apk',
  rafiq:'https://github.com/oneshoot5010/rafiq_app/releases/download/latest/app-arm64-v8a-release.apk',
- leo:'https://github.com/oneshoot5010/leo-copilot/releases/download/latest/leo-copilot.apk'
+ leo:'https://github.com/oneshoot5010/leo-copilot/releases/download/latest/leo-copilot.apk',
+ shadow:'https://github.com/oneshoot5010/shadow/releases/latest/download/Shadow.apk'
 };
 function go(k){const u=LINKS[k];if(window.Android)Android.open(u);else window.open(u)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
@@ -457,6 +459,7 @@ function devHtml(){
    ${app('emoji',APP_IC.emoji,'transparent','استيكرات ايموجي','Emoji Stickers')}
    ${app('rafiq',APP_IC.rafiq,'transparent','رفيق','Rafiq')}
    ${app('leo',APP_IC.leo,'transparent','Leo Copilot Pro','AI Copilot')}
+   ${app('shadow',SHADOW_IC,'transparent','Shadow','Shadow')}
   </div>
   <div class="foot">استيكر فونت · v1.9.41<br>Developed by Mohamed Hassan Taha</div></div>`;
 }
